@@ -33,6 +33,8 @@ export interface ParsedScheduleData {
   courses: Course[];
   cycles: number[];
   period?: string;
+  faculty?: string;
+  school?: string;
 }
 
 export interface Conflict {

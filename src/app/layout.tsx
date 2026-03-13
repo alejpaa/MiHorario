@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Constructor de Horarios UNMSM",
+  title: "Mi Horario",
   description: "Sube tu PDF, arma y guarda horarios sin cruces.",
 };
 

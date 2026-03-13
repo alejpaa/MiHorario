@@ -217,9 +217,23 @@ function getOrCreateCourse(
   return course;
 }
 
+function getHeaderValue(rawLines: string[], label: string): string | undefined {
+  const regex = new RegExp(`^${label}\\s*:\\s*(.+)$`, "i");
+  const line = rawLines.find((item) => regex.test(item));
+  if (!line) {
+    return undefined;
+  }
+
+  const match = line.match(regex);
+  return match?.[1]?.trim();
+}
+
 export async function parseUniversityPdf(file: File): Promise<ParsedScheduleData> {
   const rawLines = await extractPdfLines(file);
   const lines = rawLines.filter((line) => !isNoiseLine(line));
+  const period = getHeaderValue(rawLines, "Periodo Acad[ée]mico");
+  const faculty = getHeaderValue(rawLines, "Facultad");
+  const school = getHeaderValue(rawLines, "Escuela");
 
   const courseMap = new Map<string, Course>();
   const cycles = new Set<number>();
@@ -325,5 +339,8 @@ export async function parseUniversityPdf(file: File): Promise<ParsedScheduleData
   return {
     courses,
     cycles: Array.from(cycles).sort((a, b) => a - b),
+    period,
+    faculty,
+    school,
   };
 }
