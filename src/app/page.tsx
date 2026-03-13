@@ -167,7 +167,7 @@ export default function Home() {
   const hasData = Boolean(data);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#dcfce7_0,#eff6ff_40%,#f8fafc_100%)] p-3 md:p-5 xl:h-screen xl:overflow-hidden">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#dcfce7_0,#eff6ff_40%,#f8fafc_100%)] p-3 md:p-5 xl:h-[100dvh] xl:overflow-hidden">
       <div className={`mx-auto flex w-full flex-col ${hasData ? "max-w-[1700px] xl:h-full" : "max-w-6xl"}`}>
         <header
           className={`mb-4 rounded-2xl border border-slate-300 bg-white/90 p-4 shadow-sm backdrop-blur md:p-5 ${
@@ -219,13 +219,13 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
-            <aside className="order-2 min-h-0 space-y-4 overflow-hidden xl:order-1">
+          <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_310px] 2xl:grid-cols-[220px_minmax(0,1fr)_310px]">
+            <aside className="hidden min-h-0 space-y-4 overflow-hidden 2xl:block">
               <PDFUploader onFileSelected={parsePdf} loading={loadingPdf} compact />
               <SavedSchedules items={savedSchedules} onLoad={loadSaved} onDelete={deleteSaved} />
             </aside>
 
-            <section className="order-1 min-h-0 space-y-4 overflow-hidden xl:order-2">
+            <section className="min-h-0 flex flex-col gap-4 overflow-hidden">
               <section className="flex flex-wrap gap-2 rounded-2xl border border-slate-300 bg-white p-3 shadow-sm">
                 <button
                   type="button"
@@ -271,10 +271,17 @@ export default function Home() {
                 </p>
               )}
 
-              <ScheduleGrid selectedSections={selectedSectionObjects} courses={activeCourses} />
+              <div className="min-h-0 flex-1">
+                <ScheduleGrid selectedSections={selectedSectionObjects} courses={activeCourses} />
+              </div>
             </section>
 
-            <aside className="order-3 flex min-h-0 flex-col gap-4 overflow-hidden">
+            <aside className="flex min-h-0 flex-col gap-4 overflow-hidden xl:overflow-y-auto">
+              <div className="space-y-4 2xl:hidden">
+                <PDFUploader onFileSelected={parsePdf} loading={loadingPdf} compact />
+                <SavedSchedules items={savedSchedules} onLoad={loadSaved} onDelete={deleteSaved} />
+              </div>
+
               <CycleSelector
                 cycles={data.cycles}
                 selectedCycle={selectedCycle}
