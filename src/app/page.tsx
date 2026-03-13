@@ -167,8 +167,8 @@ export default function Home() {
   const hasData = Boolean(data);
 
   return (
-    <main className="h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#dcfce7_0,#eff6ff_40%,#f8fafc_100%)] p-3 md:p-5">
-      <div className={`mx-auto flex h-full w-full flex-col ${hasData ? "max-w-[1700px]" : "max-w-6xl"}`}>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#dcfce7_0,#eff6ff_40%,#f8fafc_100%)] p-3 md:p-5 xl:h-screen xl:overflow-hidden">
+      <div className={`mx-auto flex w-full flex-col ${hasData ? "max-w-[1700px] xl:h-full" : "max-w-6xl"}`}>
         <header
           className={`mb-4 rounded-2xl border border-slate-300 bg-white/90 p-4 shadow-sm backdrop-blur md:p-5 ${
             hasData ? "" : "mx-auto w-full max-w-5xl"
