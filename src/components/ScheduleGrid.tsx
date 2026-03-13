@@ -122,19 +122,24 @@ export function ScheduleGrid({ selectedSections, courses }: ScheduleGridProps) {
                       const duration = endMinutes - startMinutes;
                       const top = (startOffset / totalMinutes) * 100;
                       const height = (duration / totalMinutes) * 100;
+                      const showTeacher = duration >= 120;
+                      const showSection = duration >= 90;
+                      const showTime = duration >= 60;
 
                       return (
                         <article
                           key={`${section.id}-${day}-${slot.start}`}
-                          className="absolute left-1 right-1 overflow-hidden rounded-md border border-slate-500/40 p-1 text-[10px]"
+                          className="absolute left-1 right-1 overflow-hidden rounded-md border border-slate-500/40 px-1.5 py-1 text-[9px] leading-tight md:text-[10px]"
                           style={{ top: `${top}%`, height: `${height}%`, background: hashColor(course?.code ?? section.id) }}
                         >
                           <p className="truncate font-semibold text-slate-800">
                             {shortenCourseName(course?.name ?? course?.code ?? "Curso")}
                           </p>
-                          <p className="truncate text-slate-700">Sec {section.sectionNumber}</p>
-                          <p className="truncate text-slate-700">Prof. {getTeacherFirstSurname(section.teacher)}</p>
-                          <p className="truncate text-slate-700">{slot.start}-{slot.end}</p>
+                          {showSection && <p className="truncate text-slate-700">Sec {section.sectionNumber}</p>}
+                          {showTeacher && (
+                            <p className="truncate text-slate-700">Prof. {getTeacherFirstSurname(section.teacher)}</p>
+                          )}
+                          {showTime && <p className="truncate text-slate-700">{slot.start}-{slot.end}</p>}
                         </article>
                       );
                     });
