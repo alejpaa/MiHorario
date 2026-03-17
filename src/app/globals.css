@@ -19,9 +19,3 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
 }
-
-@media (min-width: 1280px) {
-  body {
-    overflow: hidden;
-  }
-}

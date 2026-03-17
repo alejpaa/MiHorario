@@ -4,7 +4,7 @@ import type { Course, DayName, Section } from "../types";
 import { timeToMinutes } from "../lib/time";
 
 const DAYS: DayName[] = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO"];
-const START_HOUR = 7;
+const START_HOUR = 8;
 const END_HOUR = 22;
 const COURSE_COLORS = [
   "hsl(16 85% 84%)",

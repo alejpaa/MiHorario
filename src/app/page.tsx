@@ -9,7 +9,12 @@ import { ScheduleGrid } from "../components/ScheduleGrid";
 import { getAllConflicts } from "../lib/conflict-checker";
 import { parseUniversityPdf } from "../lib/pdf-parser";
 import { generateSchedules } from "../lib/schedule-solver";
-import { loadSchedules, saveSchedules } from "../lib/storage";
+import {
+  loadPlannerSession,
+  loadSchedules,
+  savePlannerSession,
+  saveSchedules,
+} from "../lib/storage";
 import type { Course, ParsedScheduleData, SavedSchedule, Section } from "../types";
 
 function getSectionById(courses: Course[], sectionId: string): Section | undefined {
@@ -33,10 +38,34 @@ export default function Home() {
   const [savedSchedules, setSavedSchedules] = useState<SavedSchedule[]>([]);
   const [autoOptions, setAutoOptions] = useState<Record<string, string>[]>([]);
   const [autoIndex, setAutoIndex] = useState(0);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setSavedSchedules(loadSchedules());
+    const session = loadPlannerSession();
+    if (session) {
+      setData(session.data);
+      setSelectedCycle(session.selectedCycle);
+      setAllowExtraCourses(session.allowExtraCourses);
+      setExtraCourseCodes(session.extraCourseCodes);
+      setSelectedSections(session.selectedSections);
+    }
+    setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!hydrated || !data) {
+      return;
+    }
+
+    savePlannerSession({
+      data,
+      selectedCycle,
+      allowExtraCourses,
+      extraCourseCodes,
+      selectedSections,
+    });
+  }, [allowExtraCourses, data, extraCourseCodes, hydrated, selectedCycle, selectedSections]);
 
   const activeCourses = useMemo(() => {
     if (!data) {
@@ -167,23 +196,35 @@ export default function Home() {
   const hasData = Boolean(data);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#dcfce7_0,#eff6ff_40%,#f8fafc_100%)] p-3 md:p-5 xl:h-[100dvh] xl:overflow-hidden">
+    <main
+      className={`min-h-screen bg-[radial-gradient(circle_at_top,#dcfce7_0,#eff6ff_40%,#f8fafc_100%)] p-3 md:p-5 ${
+        hasData ? "xl:h-[100dvh] xl:overflow-hidden" : ""
+      }`}
+    >
       <div className={`mx-auto flex w-full flex-col ${hasData ? "max-w-[1700px] xl:h-full" : "max-w-6xl"}`}>
         <header
-          className={`mb-4 rounded-2xl border border-slate-300 bg-white/90 p-4 shadow-sm backdrop-blur md:p-5 ${
+          className={`rounded-2xl border border-slate-300 bg-white/90 shadow-sm backdrop-blur ${
+            hasData ? "mb-2 p-2 md:p-2.5" : "mb-4 p-4 md:p-5"
+          } ${
             hasData ? "" : "mx-auto w-full max-w-5xl"
           }`}
         >
           <div className={hasData ? "" : "mx-auto max-w-3xl text-center"}>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">{headerBadge}</p>
-            <h1 className="mt-2 text-2xl font-bold text-slate-900 md:text-3xl">Mi Horario</h1>
-            <p className={`mt-2 text-sm text-slate-600 ${hasData ? "max-w-3xl" : ""}`}>{headerDescription}</p>
+            <p className={`font-semibold uppercase tracking-[0.18em] text-emerald-700 ${hasData ? "text-[11px]" : "text-xs"}`}>
+              {headerBadge}
+            </p>
+            <h1 className={`font-bold text-slate-900 ${hasData ? "mt-0.5 text-xl leading-tight md:text-2xl" : "mt-2 text-2xl md:text-3xl"}`}>
+              Mi Horario
+            </h1>
+            <p className={`text-slate-600 ${hasData ? "mt-0.5 text-[11px] leading-tight md:text-xs xl:hidden" : "mt-2 text-sm"}`}>
+              {headerDescription}
+            </p>
 
             {data && (
-              <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-                {data.faculty && <span className="rounded-full bg-slate-100 px-3 py-1">{data.faculty}</span>}
-                {data.period && <span className="rounded-full bg-slate-100 px-3 py-1">Periodo {data.period}</span>}
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">
+              <div className={`flex flex-wrap gap-1.5 text-slate-600 ${hasData ? "mt-1 text-[11px]" : "mt-3 text-xs"}`}>
+                {data.faculty && <span className="rounded-full bg-slate-100 px-2.5 py-0.5">{data.faculty}</span>}
+                {data.period && <span className="rounded-full bg-slate-100 px-2.5 py-0.5">Periodo {data.period}</span>}
+                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-emerald-800">
                   Cursos detectados: {data.courses.length}
                 </span>
               </div>
@@ -271,27 +312,31 @@ export default function Home() {
                 </p>
               )}
 
-              <div className="min-h-0 flex-1">
-                <ScheduleGrid selectedSections={selectedSectionObjects} courses={activeCourses} />
+              <div className="min-h-0 flex-1 xl:flex xl:items-center xl:justify-center">
+                <div className="h-full w-full xl:max-w-[1220px]">
+                  <ScheduleGrid selectedSections={selectedSectionObjects} courses={activeCourses} />
+                </div>
               </div>
             </section>
 
-            <aside className="flex min-h-0 flex-col gap-4 overflow-hidden xl:overflow-y-auto">
-              <div className="space-y-4 2xl:hidden">
+            <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto overscroll-contain pr-1 [scrollbar-gutter:stable]">
+              <div className="shrink-0 space-y-4 2xl:hidden">
                 <PDFUploader onFileSelected={parsePdf} loading={loadingPdf} compact />
                 <SavedSchedules items={savedSchedules} onLoad={loadSaved} onDelete={deleteSaved} />
               </div>
 
-              <CycleSelector
-                cycles={data.cycles}
-                selectedCycle={selectedCycle}
-                onCycleChange={setSelectedCycle}
-                allowExtraCourses={allowExtraCourses}
-                onAllowExtraCoursesChange={setAllowExtraCourses}
-                allCourses={data.courses}
-                extraCourseCodes={extraCourseCodes}
-                onExtraCourseCodesChange={setExtraCourseCodes}
-              />
+              <div className="shrink-0">
+                <CycleSelector
+                  cycles={data.cycles}
+                  selectedCycle={selectedCycle}
+                  onCycleChange={setSelectedCycle}
+                  allowExtraCourses={allowExtraCourses}
+                  onAllowExtraCoursesChange={setAllowExtraCourses}
+                  allCourses={data.courses}
+                  extraCourseCodes={extraCourseCodes}
+                  onExtraCourseCodesChange={setExtraCourseCodes}
+                />
+              </div>
 
               <div className="min-h-0 flex-1">
                 <CourseList
