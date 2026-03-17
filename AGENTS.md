@@ -111,6 +111,11 @@ Run all commands from repository root.
 - Keep side effects in `useEffect`.
 - Avoid unnecessary re-renders from unstable inline objects.
 
+### UI Alerts
+- Use `src/components/AppAlert.tsx` for in-app warning/error/info messages.
+- Do not use `window.alert`, `window.confirm`, or `window.prompt` for conflict or validation feedback in the main UI flow.
+- Prefer non-blocking alerts rendered in the interface so users can keep context while fixing selections.
+
 ### Domain and Data Modeling
 - Reuse `DayName`, `TimeSlot`, `Section`, `Course`, `Conflict`, `SavedSchedule`.
 - Keep day normalization centralized via `normalizeDay`.

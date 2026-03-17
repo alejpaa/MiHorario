@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CourseList } from "../components/CourseList";
+import { AppAlert } from "../components/AppAlert";
+import { CourseList, type ConflictSelectionNotice } from "../components/CourseList";
 import { CycleSelector } from "../components/CycleSelector";
 import { PDFUploader } from "../components/PDFUploader";
 import { SavedSchedules } from "../components/SavedSchedules";
@@ -39,6 +40,7 @@ export default function Home() {
   const [autoOptions, setAutoOptions] = useState<Record<string, string>[]>([]);
   const [autoIndex, setAutoIndex] = useState(0);
   const [hydrated, setHydrated] = useState(false);
+  const [conflictNotice, setConflictNotice] = useState<ConflictSelectionNotice | null>(null);
 
   useEffect(() => {
     setSavedSchedules(loadSchedules());
@@ -129,6 +131,7 @@ export default function Home() {
   };
 
   const selectSection = (courseCode: string, sectionId: string) => {
+    setConflictNotice(null);
     setSelectedSections((prev) => {
       if (prev[courseCode] === sectionId) {
         const next = { ...prev };
@@ -187,6 +190,10 @@ export default function Home() {
     const next = savedSchedules.filter((item) => item.id !== id);
     setSavedSchedules(next);
     saveSchedules(next);
+  };
+
+  const handleConflictAttempt = (notice: ConflictSelectionNotice) => {
+    setConflictNotice(notice);
   };
 
   const headerBadge = data?.school ?? "Planificador universitario";
@@ -341,12 +348,30 @@ export default function Home() {
               <div className="min-h-0 flex-1">
                 <CourseList
                   courses={activeCourses}
+                  allCourses={data.courses}
                   selectedSections={selectedSections}
                   onSelectSection={selectSection}
                   selectedSectionObjects={selectedSectionObjects}
+                  onConflictAttempt={handleConflictAttempt}
                 />
               </div>
             </aside>
+          </div>
+        )}
+
+        {conflictNotice && (
+          <div className="pointer-events-none fixed bottom-4 right-4 z-50 w-[min(92vw,430px)]">
+            <div className="pointer-events-auto">
+              <AppAlert
+                tone="warning"
+                title={`Cruce detectado en ${conflictNotice.courseCode} - Sec ${conflictNotice.sectionNumber}`}
+                description="Esta seleccion se cruza con las siguientes secciones."
+                items={conflictNotice.conflicts.map(
+                  (item) => `${item.code} - ${item.name} (Sec ${item.sectionNumber})`,
+                )}
+                onClose={() => setConflictNotice(null)}
+              />
+            </div>
           </div>
         )}
       </div>
