@@ -72,7 +72,7 @@ export function ScheduleGrid({ selectedSections, courses }: ScheduleGridProps) {
 
   return (
     <section className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-300 bg-white p-4 shadow-sm md:p-5">
-      <p className="text-sm font-semibold text-slate-800">4) Vista de horario</p>
+      <p className="text-sm font-semibold text-slate-800">Horario</p>
 
       <div className="mt-3 min-h-0 flex-1 overflow-x-auto">
         <div className="flex h-full min-h-[460px] min-w-[780px] flex-col xl:min-w-0">
