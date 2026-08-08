@@ -184,13 +184,14 @@ export function CourseList({
 
                         onSelectSection(course.code, section.id);
                       }}
-                      className={`group w-full rounded-lg border px-2.5 py-1.5 text-left text-[11px] transition-all duration-150 ${
+                      className={`group w-full rounded-lg border px-2.5 py-1.5 text-left text-[11px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                         selected
                           ? "border-emerald-600 bg-emerald-50 text-emerald-950 font-medium shadow-2xs"
                           : hasConflict
                             ? "border-rose-300 bg-rose-50 text-rose-900 hover:border-rose-400"
                             : "border-slate-200 bg-slate-50/70 text-slate-700 hover:border-slate-300 hover:bg-slate-100"
                       }`}
+
                     >
                       <div className="flex items-center justify-between gap-1">
                         <span className="font-bold text-slate-900 flex items-center gap-1.5">

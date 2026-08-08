@@ -90,11 +90,13 @@ export function PDFUploader({
             processFile(event.dataTransfer.files[0]);
           }}
           disabled={loading}
-          className={`mt-6 flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 transition-all duration-200 ${
+          aria-label="Seleccionar o arrastrar archivo PDF de horarios UNMSM"
+          className={`mt-6 flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${
             isDragging
               ? "border-emerald-500 bg-emerald-50 text-emerald-950 scale-[1.01]"
               : "border-slate-300 bg-slate-50/80 text-slate-700 hover:border-emerald-400 hover:bg-emerald-50/30"
           }`}
+
 
         >
           {loading ? (

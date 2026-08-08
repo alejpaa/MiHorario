@@ -49,12 +49,13 @@ export function CycleSelector({
               key={cycle}
               type="button"
               onClick={() => onCycleChange(cycle)}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all duration-150 ${
+              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 isSelected
                   ? "bg-emerald-600 text-white shadow-2xs"
                   : "bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-200/80"
               }`}
             >
+
               Ciclo {cycle}
             </button>
           );
