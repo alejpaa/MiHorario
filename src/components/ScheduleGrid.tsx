@@ -46,6 +46,7 @@ interface ScheduleGridProps {
   hoveredCourseCode?: string | null;
   onHoverCourse?: (code: string | null) => void;
   onClickCourse?: (code: string) => void;
+  interactive?: boolean;
 }
 
 export function ScheduleGrid({
@@ -54,6 +55,7 @@ export function ScheduleGrid({
   hoveredCourseCode,
   onHoverCourse,
   onClickCourse,
+  interactive = true,
 }: ScheduleGridProps) {
   const totalHours = END_HOUR - START_HOUR;
   const totalMinutes = totalHours * 60;
@@ -144,23 +146,33 @@ export function ScheduleGrid({
                         course?.name ?? course?.code ?? "Curso sin nombre";
                       const blockLabel = `${shortenCourseName(courseLabel)}, Sección ${section.sectionNumber}, ${day}, ${slot.start} - ${slot.end}${course ? `, ${course.code}` : ""}`;
 
+                      const blockHandlers = interactive
+                        ? {
+                            onMouseEnter: () => course && onHoverCourse?.(course.code),
+                            onMouseLeave: () => onHoverCourse?.(null),
+                            onFocus: () => course && onHoverCourse?.(course.code),
+                            onBlur: () => onHoverCourse?.(null),
+                            onClick: () => course && onClickCourse?.(course.code),
+                            tabIndex: 0,
+                            role: "img",
+                            "aria-label": blockLabel,
+                          }
+                        : {};
+
                       return (
                         <article
                           key={`${section.id}-${day}-${slot.start}`}
-                          onMouseEnter={() => course && onHoverCourse?.(course.code)}
-                          onMouseLeave={() => onHoverCourse?.(null)}
-                          onFocus={() => course && onHoverCourse?.(course.code)}
-                          onBlur={() => onHoverCourse?.(null)}
-                          onClick={() => course && onClickCourse?.(course.code)}
-                          tabIndex={0}
-                          role="img"
-                          aria-label={blockLabel}
-                          className={`absolute left-0.5 right-0.5 overflow-hidden rounded-lg border px-2 py-1 text-[10px] transition-all duration-150 shadow-2xs outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 ${
-                            palette.bg
-                          } ${palette.border} ${
-                            isHovered
-                              ? "ring-2 ring-emerald-500 scale-[1.02] z-20 shadow-md"
-                              : "hover:scale-[1.01] hover:z-10"
+                          {...blockHandlers}
+                          className={`absolute left-0.5 right-0.5 overflow-hidden rounded-lg border px-2 py-1 text-[10px] transition-all duration-150 shadow-2xs ${
+                            interactive
+                              ? "outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1"
+                              : ""
+                          } ${palette.bg} ${palette.border} ${
+                            interactive
+                              ? isHovered
+                                ? "ring-2 ring-emerald-500 scale-[1.02] z-20 shadow-md"
+                                : "hover:scale-[1.01] hover:z-10"
+                              : ""
                           }`}
                           style={{ top: `${top}%`, height: `${height}%` }}
                         >
