@@ -73,29 +73,35 @@ export function ScheduleGrid({
   );
 
   return (
-    <section className="flex h-full min-h-0 w-full flex-col rounded-2xl border border-slate-200 bg-white p-2 sm:p-3 shadow-sm">
-      <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar">
-        <div className="flex h-full w-full min-w-[560px] md:min-w-0 flex-col">
+    <section className="flex h-full min-h-0 w-full flex-col rounded-2xl border border-slate-200 bg-white p-1.5 sm:p-3 shadow-sm">
+      <div className="min-h-0 flex-1 overflow-auto custom-scrollbar">
+        <div className={`flex h-full w-full flex-col ${interactive ? "min-w-[640px] min-h-[720px] md:min-w-0 md:min-h-0" : "min-w-0 min-h-0"}`}>
           {/* Day Headers */}
-          <div className="grid grid-cols-[48px_repeat(6,minmax(0,1fr))] gap-1.5 text-xs font-bold text-slate-700">
+          <div className={`grid gap-1 text-xs font-bold text-slate-700 ${interactive ? "grid-cols-[42px_repeat(6,minmax(0,1fr))] sm:grid-cols-[48px_repeat(6,minmax(0,1fr))]" : "grid-cols-[48px_repeat(6,minmax(0,1fr))]"}`}>
             <div className="flex items-center justify-center text-[10px] uppercase text-slate-400 font-mono">
               Hora
             </div>
             {DAYS.map((day) => (
               <div
                 key={day}
-                className="rounded-lg bg-slate-100 px-2 py-1.5 text-center text-slate-800 border border-slate-200/80 shadow-2xs flex items-center justify-center gap-1"
+                className="rounded-lg bg-slate-100 px-1 sm:px-2 py-1.5 text-center text-slate-800 border border-slate-200/80 shadow-2xs flex items-center justify-center gap-1"
               >
-                <span className="hidden sm:inline">{day}</span>
-                <span className="sm:hidden">{SHORT_DAYS[day]}</span>
+                {interactive ? (
+                  <>
+                    <span className="hidden sm:inline">{day}</span>
+                    <span className="sm:hidden">{SHORT_DAYS[day]}</span>
+                  </>
+                ) : (
+                  <span>{day}</span>
+                )}
               </div>
             ))}
           </div>
 
           {/* Time & Slot Grid Area */}
-          <div className="relative mt-1.5 grid min-h-0 flex-1 grid-rows-1 grid-cols-[48px_repeat(6,minmax(0,1fr))] gap-1.5">
+          <div className={`relative mt-1 grid min-h-0 flex-1 gap-1 ${interactive ? "grid-cols-[42px_repeat(6,minmax(0,1fr))] sm:grid-cols-[48px_repeat(6,minmax(0,1fr))]" : "grid-cols-[48px_repeat(6,minmax(0,1fr))]"}`}>
             {/* Time labels column */}
-            <div className="relative h-full text-[10px] font-mono text-slate-400">
+            <div className="relative h-full text-[10px] font-mono text-slate-400 select-none">
               {Array.from({ length: totalHours + 1 }, (_, index) => {
                 const hour = START_HOUR + index;
                 const isFirst = index === 0;
@@ -103,7 +109,7 @@ export function ScheduleGrid({
                 return (
                   <span
                     key={hour}
-                    className={`absolute left-1 select-none ${
+                    className={`absolute left-0.5 sm:left-1 select-none ${
                       isLast ? "-translate-y-full" : isFirst ? "translate-y-0" : "-translate-y-1/2"
                     }`}
                     style={{ top: `${(index / totalHours) * 100}%` }}
@@ -146,28 +152,28 @@ export function ScheduleGrid({
                       const top = (startOffset / totalMinutes) * 100;
                       const height = (duration / totalMinutes) * 100;
 
-                      const showTeacher = duration >= 45;
-                      const showSection = duration >= 60;
+                      const showTeacher = duration >= 60;
+                      const showSection = duration >= 45;
                       const isHuge = duration >= 180;
                       const isTall = duration >= 100;
 
                       const nameSize = isHuge
-                        ? "text-sm sm:text-base font-extrabold leading-snug"
+                        ? "text-xs sm:text-base font-extrabold leading-snug break-words"
                         : isTall
-                        ? "text-xs sm:text-sm font-extrabold leading-snug"
-                        : "text-[11px] font-bold leading-tight";
+                        ? "text-[10px] sm:text-sm font-extrabold leading-tight break-words"
+                        : "text-[8.5px] sm:text-xs font-bold leading-tight break-words";
 
                       const metaSize = isHuge
-                        ? "text-xs font-semibold"
+                        ? "text-[10px] sm:text-xs font-semibold"
                         : isTall
-                        ? "text-[11px] font-semibold"
-                        : "text-[10px] font-medium";
+                        ? "text-[9px] sm:text-[11px] font-semibold"
+                        : "text-[8px] sm:text-[10px] font-medium";
 
                       const badgeSize = isHuge
-                        ? "text-xs px-1.5 py-0.5 rounded-md"
+                        ? "text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded"
                         : isTall
-                        ? "text-[10px] px-1 py-0.5 rounded"
-                        : "text-[9px] px-1 rounded";
+                        ? "text-[9px] sm:text-[10px] px-1 py-0.5 rounded"
+                        : "text-[8px] sm:text-[9px] px-0.5 rounded";
 
                       const courseLabel = course?.name ?? course?.code ?? "Curso sin nombre";
                       const blockLabel = `${courseLabel}, Sección ${section.sectionNumber}, ${day}, ${slot.start} - ${slot.end}${course ? `, ${course.code}` : ""}, Docente: ${teacherFullName}`;
@@ -189,49 +195,44 @@ export function ScheduleGrid({
                         <article
                           key={`${section.id}-${day}-${slot.start}`}
                           {...blockHandlers}
-                          className={`absolute left-0.5 right-0.5 flex flex-col justify-between overflow-hidden rounded-lg border animate-schedule-block transition-all duration-200 ease-out shadow-2xs ${
+                          className={`absolute left-[1px] right-[1px] flex flex-col justify-between overflow-hidden rounded-md sm:rounded-lg border animate-schedule-block transition-all duration-200 ease-out shadow-2xs ${
                             isHuge
-                              ? "p-3 gap-1.5"
+                              ? "p-1.5 sm:p-3 gap-1"
                               : isTall
-                              ? "p-2.5 gap-1"
-                              : "p-1.5 gap-0.5"
+                              ? "p-1 sm:p-2.5 gap-0.5"
+                              : "p-0.5 sm:p-1.5 gap-0.5"
                           } ${interactive
-                            ? "outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 cursor-pointer active:scale-[0.98]"
+                            ? "animate-schedule-block outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 cursor-pointer active:scale-[0.98]"
                             : ""
                           } ${palette.bg} ${palette.border} ${
                             interactive
                               ? isHovered
-                                ? "ring-2 ring-emerald-500 scale-[1.03] z-20 shadow-md"
+                                ? "ring-2 ring-emerald-500 scale-[1.02] z-20 shadow-md"
                                 : "hover:scale-[1.01] hover:z-10 hover:shadow-xs"
                               : ""
                           }`}
                           style={{ top: `${top}%`, height: `${height}%` }}
                         >
-                          <div className="flex items-start justify-between gap-1">
-                            <p className={`flex-1 min-w-0 tracking-tight break-words ${palette.text} ${nameSize}`}>
+                          <div className="flex items-start justify-between gap-0.5 min-w-0">
+                            <p className={`flex-1 min-w-0 tracking-tight ${palette.text} ${nameSize}`}>
                               {course?.name ?? course?.code ?? "Curso"}
                             </p>
                             {showSection && (
                               <div className="flex flex-col items-end gap-0.5 shrink-0">
                                 <span className={`font-mono font-bold ${palette.badge} ${badgeSize}`}>
-                                  Sec {section.sectionNumber}
+                                  S{section.sectionNumber}
                                 </span>
-                                {isHuge && course?.code && (
-                                  <span className="font-mono text-[10px] text-slate-500 font-semibold">
-                                    {course.code}
-                                  </span>
-                                )}
                               </div>
                             )}
                           </div>
 
-                          <div className="flex flex-col gap-0.5">
+                          <div className="flex flex-col gap-0.5 mt-auto min-w-0">
                             {showTeacher && (
-                              <p className={`text-slate-800 leading-tight break-words ${metaSize}`}>
+                              <p className={`text-slate-800 leading-tight truncate ${metaSize}`}>
                                 {teacherFullName}
                               </p>
                             )}
-                            <p className={`font-mono text-slate-600 leading-tight ${metaSize}`}>
+                            <p className={`font-mono text-slate-600 leading-none truncate ${metaSize}`}>
                               {slot.start} - {slot.end}
                             </p>
                           </div>

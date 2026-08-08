@@ -549,23 +549,24 @@ export default function Home() {
           {/* Right Main Timetable Area */}
           <main className={`${mobileTab === "schedule" ? "flex" : "hidden"} md:flex flex-1 h-full flex-col min-w-0 bg-slate-50 p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden`}>
             {/* Top Solver & Action Bar */}
-            <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-2xs">
-              <div className="flex items-center gap-2">
+            <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-2 sm:p-2.5 shadow-2xs">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={runAutoGeneration}
-                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 active:scale-[0.97] shadow-2xs transition"
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-2.5 sm:px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 active:scale-[0.97] shadow-2xs transition min-h-[36px]"
                 >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  <span>Generar Horarios Sin Cruces</span>
+                  <span className="hidden sm:inline">Generar Horarios Sin Cruces</span>
+                  <span className="sm:hidden">Generar sin cruces</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={openSaveModal}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-100 transition"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-100 transition min-h-[36px]"
                 >
                   ★ Guardar
                 </button>
@@ -583,9 +584,9 @@ export default function Home() {
                     }
                     setShowExportModal(true);
                   }}
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-100 transition"
+                  className="flex items-center gap-1 sm:gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-100 transition min-h-[36px]"
                 >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -603,20 +604,20 @@ export default function Home() {
                   align="right"
                   label="Seleccionar opción de horario"
                   trigger={
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center gap-1 sm:gap-1.5">
                       <span className="font-extrabold text-emerald-800">
-                        Opción {autoIndex + 1} de {autoOptions.length}
+                        Opción {autoIndex + 1}/{autoOptions.length}
                       </span>
-                      <span className="font-semibold text-slate-500">
-                        {optionSummaries[autoIndex].courseCount} cursos ·{" "}
-                        {optionSummaries[autoIndex].freeDayCount} libre(s)
+                      <span className="hidden sm:inline font-semibold text-slate-500">
+                        ({optionSummaries[autoIndex].courseCount} cursos ·{" "}
+                        {optionSummaries[autoIndex].freeDayCount} libre)
                       </span>
                       <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                       </svg>
                     </span>
                   }
-                  triggerClassName="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700 hover:border-slate-300 hover:bg-slate-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  triggerClassName="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 sm:px-3 py-1 text-xs text-slate-700 hover:border-slate-300 hover:bg-slate-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 min-h-[36px]"
                 >
                   {(close) => (
                     <div className="max-h-72 overflow-y-auto custom-scrollbar">

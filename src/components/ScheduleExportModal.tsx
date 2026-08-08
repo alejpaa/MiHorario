@@ -53,9 +53,7 @@ export function ScheduleExportModal({
     const generate = async () => {
       try {
         await document.fonts.ready;
-        await new Promise<void>((resolve) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-        );
+        await new Promise((resolve) => setTimeout(resolve, 150));
 
         const node = captureRef.current;
         if (!node) {
@@ -65,6 +63,7 @@ export function ScheduleExportModal({
         const dataUrl = await toPng(node, {
           pixelRatio: 2,
           backgroundColor: "#ffffff",
+          cacheBust: true,
         });
 
         if (cancelled) {
@@ -195,7 +194,7 @@ export function ScheduleExportModal({
       </div>
 
       {/* Hidden capture node: widescreen (16:9 aspect ratio) + brand header & footer */}
-      <div className="pointer-events-none fixed -left-[99999px] top-0" aria-hidden="true">
+      <div className="pointer-events-none fixed left-0 top-0 -z-[9999] opacity-0" aria-hidden="true">
         <div ref={captureRef} className="w-[1440px] bg-white">
           <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-7 py-4.5">
             <div className="flex items-center gap-3.5">
