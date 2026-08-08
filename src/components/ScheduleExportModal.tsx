@@ -107,14 +107,14 @@ export function ScheduleExportModal({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/40 p-4"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/40 p-4 animate-modal-backdrop"
       role="dialog"
       aria-modal="true"
       aria-labelledby="export-modal-title"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
+        className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl animate-modal-pop"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
@@ -123,7 +123,7 @@ export function ScheduleExportModal({
               Exportar horario
             </h3>
             <p className="mt-0.5 text-xs text-slate-500">
-              Imagen lista para pegar en WhatsApp, Discord, Telegram…
+              Imagen panorámica (16:9) lista para compartir en WhatsApp, Discord, Telegram…
             </p>
           </div>
           <button
@@ -156,7 +156,7 @@ export function ScheduleExportModal({
               <img
                 src={preview}
                 alt="Vista previa del horario exportado"
-                className="mx-auto max-h-[62vh] w-auto rounded-xl border border-slate-200 shadow-sm"
+                className="mx-auto max-h-[62vh] w-full object-contain rounded-xl border border-slate-200 shadow-sm"
               />
 
               {copyStatus === "copied" && (
@@ -194,32 +194,32 @@ export function ScheduleExportModal({
         </div>
       </div>
 
-      {/* Hidden capture node: exact web grid + brand header */}
+      {/* Hidden capture node: widescreen (16:9 aspect ratio) + brand header & footer */}
       <div className="pointer-events-none fixed -left-[99999px] top-0" aria-hidden="true">
-        <div ref={captureRef} className="w-[1080px] bg-white">
-          <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 font-black text-white text-sm shadow-2xs">
+        <div ref={captureRef} className="w-[1440px] bg-white">
+          <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-7 py-4.5">
+            <div className="flex items-center gap-3.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 font-black text-white text-base shadow-2xs">
                 MH
               </span>
               <div>
-                <p className="font-extrabold text-lg text-slate-900 tracking-tight">
+                <p className="font-extrabold text-xl text-slate-900 tracking-tight">
                   MiHorario{" "}
                   <span className="font-mono text-emerald-700 text-sm font-bold">UNMSM</span>
                 </p>
-                <p className="font-mono text-[11px] text-slate-400">{SITE_URL}</p>
+                <p className="font-mono text-xs text-slate-400">{SITE_URL}</p>
               </div>
             </div>
             <div className="text-right">
               {school && <p className="text-xs font-semibold text-slate-600">{school}</p>}
-              <p className="text-xs font-bold text-slate-800">
+              <p className="text-sm font-bold text-slate-800">
                 {period ? `${period} · Ciclo ${cycle}` : `Ciclo ${cycle}`}
               </p>
             </div>
           </header>
 
-          <div className="bg-white p-5">
-            <div className="h-[720px] w-full">
+          <div className="bg-white p-6">
+            <div className="h-[710px] w-full">
               <ScheduleGrid
                 selectedSections={sections}
                 courses={courses}
@@ -227,6 +227,15 @@ export function ScheduleExportModal({
               />
             </div>
           </div>
+
+          <footer className="flex items-center justify-between border-t border-slate-100 bg-slate-50/60 px-7 py-3 text-xs text-slate-500">
+            <div className="flex items-center gap-4 font-medium">
+              <span>Asignaturas seleccionadas: <strong className="font-bold text-slate-800">{sections.length}</strong></span>
+            </div>
+            <p className="font-mono text-[11px] text-slate-400">
+              Generado en {SITE_URL}
+            </p>
+          </footer>
         </div>
       </div>
     </div>

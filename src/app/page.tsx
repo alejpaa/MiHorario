@@ -428,7 +428,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={runAutoGeneration}
-                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-2xs transition"
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 active:scale-[0.97] shadow-2xs transition"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -651,14 +651,14 @@ export default function Home() {
       {/* Save Schedule Modal */}
       {showSaveModal && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4 animate-modal-backdrop"
           role="dialog"
           aria-modal="true"
           aria-labelledby="save-modal-title"
           onClick={() => setShowSaveModal(false)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-xl animate-modal-pop"
             onClick={(event) => event.stopPropagation()}
           >
             <h3 id="save-modal-title" className="text-sm font-bold text-slate-900">
@@ -703,7 +703,7 @@ export default function Home() {
       {/* Help panel */}
       {showHelp && (
         <div
-          className="fixed right-4 top-16 z-[70] w-[min(92vw,360px)] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
+          className="fixed right-4 top-16 z-[70] w-[min(92vw,360px)] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl animate-drawer-slide"
           role="dialog"
           aria-label="Ayuda de MiHorario"
         >

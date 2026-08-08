@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Course, Section } from "../types";
 import { sectionsHaveConflict } from "../lib/conflict-checker";
 import { getCoursePalette } from "../lib/palette";
+import { formatTeacherName } from "../lib/time";
 
 interface ConflictingCourseItem {
   code: string;
@@ -221,11 +222,11 @@ export function CourseList({
 
                         onSelectSection(course.code, section.id);
                       }}
-                      className={`group w-full rounded-lg border px-2.5 py-1.5 text-left text-[11px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                      className={`group w-full rounded-lg border px-2.5 py-1.5 text-left text-[11px] transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                         selected
                           ? "border-emerald-600 bg-emerald-50 text-emerald-950 font-medium shadow-2xs"
                           : hasConflict
-                            ? "border-rose-300 bg-rose-50 text-rose-900 hover:border-rose-400"
+                            ? "border-rose-300 bg-rose-50 text-rose-900 hover:border-rose-400 hover:bg-rose-100/50"
                             : "border-slate-200 bg-slate-50/70 text-slate-700 hover:border-slate-300 hover:bg-slate-100"
                       }`}
 
@@ -244,8 +245,8 @@ export function CourseList({
                         )}
                       </div>
 
-                      <p className="mt-0.5 truncate text-[10px] text-slate-600">
-                        {section.teacher}
+                      <p className="mt-0.5 truncate text-[10px] text-slate-600 font-medium">
+                        {formatTeacherName(section.teacher)}
                       </p>
                       <p className="mt-0.5 font-mono text-[10px] text-slate-500">
                         {formatSlots(section) || "Horario pendiente"}

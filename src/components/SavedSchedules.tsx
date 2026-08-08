@@ -11,7 +11,7 @@ interface SavedSchedulesProps {
 
 export function SavedSchedules({ items, onLoad, onDelete, onClose }: SavedSchedulesProps) {
   return (
-    <div className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+    <div className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-xl animate-drawer-slide">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] font-bold text-emerald-800">

@@ -23,7 +23,7 @@ export function AppAlert({
   onClose,
 }: AppAlertProps) {
   return (
-    <section className={`rounded-xl border p-3 shadow-lg backdrop-blur ${toneClasses[tone]}`}>
+    <section className={`rounded-xl border p-3 shadow-lg backdrop-blur animate-alert-slide ${toneClasses[tone]}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold">{title}</p>

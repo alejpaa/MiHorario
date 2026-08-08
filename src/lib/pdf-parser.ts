@@ -1,10 +1,7 @@
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
-import type { Course, DayName, ParsedScheduleData, Section, TimeSlot } from "../types";
-import { normalizeDay } from "./time";
+import type { Course, DayName, ParsedScheduleData, TimeSlot } from "../types";
 
-const COURSE_CODE_REGEX = /^(\d{3}SW[0-9A-Z]{4})\s*-\s*(.+)$/;
-const DAY_TIME_REGEX =
-  /^--\s*(LUNES|MARTES|MIERCOLES|MI\u00c9RCOLES|JUEVES|VIERNES|SABADO|S\u00c1BADO)\s+(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})$/;
+const COURSE_START_REGEX = /^([0-9A-Z]{6,10})\s*-\s*/;
 
 let workerConfigured = false;
 
@@ -39,126 +36,6 @@ function isNoiseLine(line: string): boolean {
     line.startsWith("Horas Clase") ||
     /^P\u00e1gina\s+\d+/i.test(line)
   );
-}
-
-function parseSectionTimeSlots(lines: string[], startIndex: number) {
-  const timeSlots: TimeSlot[] = [];
-  let i = startIndex;
-
-  while (i < lines.length) {
-    const line = lines[i];
-    const dayMatch = line.match(DAY_TIME_REGEX);
-
-    if (!dayMatch) {
-      break;
-    }
-
-    const day = normalizeDay(dayMatch[1]) as DayName;
-    const start = dayMatch[2];
-    const end = dayMatch[3];
-
-    if (
-      day === "LUNES" ||
-      day === "MARTES" ||
-      day === "MIERCOLES" ||
-      day === "JUEVES" ||
-      day === "VIERNES" ||
-      day === "SABADO"
-    ) {
-      timeSlots.push({ day, start, end });
-    }
-
-    i += 1;
-  }
-
-  return { timeSlots, nextIndex: i };
-}
-
-function parseInlineDaySlot(line: string): TimeSlot | null {
-  const dayMatch = line.match(DAY_TIME_REGEX);
-  if (!dayMatch) {
-    return null;
-  }
-
-  const day = normalizeDay(dayMatch[1]) as DayName;
-  if (
-    day !== "LUNES" &&
-    day !== "MARTES" &&
-    day !== "MIERCOLES" &&
-    day !== "JUEVES" &&
-    day !== "VIERNES" &&
-    day !== "SABADO"
-  ) {
-    return null;
-  }
-
-  return {
-    day,
-    start: dayMatch[2],
-    end: dayMatch[3],
-  };
-}
-
-function parseTeacherCapacityAndFirstSlot(
-  initial: string,
-  lines: string[],
-  index: number,
-): {
-  teacher: string;
-  capacity?: number;
-  enrolled?: number;
-  firstSlot?: TimeSlot;
-  consumedLines: number;
-} {
-  const MAX_EXTRA_LINES = 2;
-  let consumedLines = 0;
-  let merged = initial.trim();
-
-  while (consumedLines <= MAX_EXTRA_LINES) {
-    const match = merged.match(
-      /^(.*?)\s+(\d+)\s+(\d+)\s+--\s*(LUNES|MARTES|MIERCOLES|MIÉRCOLES|JUEVES|VIERNES|SABADO|SÁBADO)\s+(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})$/,
-    );
-
-    if (match) {
-      const teacher = match[1].replace(/\s+/g, " ").trim();
-      const day = normalizeDay(match[4]) as DayName;
-      const firstSlot: TimeSlot = {
-        day,
-        start: match[5],
-        end: match[6],
-      };
-
-      return {
-        teacher,
-        capacity: Number(match[2]),
-        enrolled: Number(match[3]),
-        firstSlot,
-        consumedLines,
-      };
-    }
-
-    if (consumedLines >= MAX_EXTRA_LINES || !lines[index + consumedLines + 1]) {
-      break;
-    }
-
-    consumedLines += 1;
-    merged = `${merged} ${lines[index + consumedLines]}`.replace(/\s+/g, " ").trim();
-  }
-
-  const fallback = merged.match(/^(.*?)\s+(\d+)\s+(\d+)$/);
-  if (fallback) {
-    return {
-      teacher: fallback[1].replace(/\s+/g, " ").trim(),
-      capacity: Number(fallback[2]),
-      enrolled: Number(fallback[3]),
-      consumedLines,
-    };
-  }
-
-  return {
-    teacher: initial.replace(/\s+/g, " ").trim() || "No asignado",
-    consumedLines,
-  };
 }
 
 async function extractPdfLines(file: File): Promise<string[]> {
@@ -252,83 +129,118 @@ export async function parseUniversityPdf(file: File): Promise<ParsedScheduleData
       continue;
     }
 
-    const courseMatch = line.match(COURSE_CODE_REGEX);
-    if (!courseMatch) {
-      i += 1;
-      continue;
-    }
-
-    if (currentCycle === 0) {
-      i += 1;
-      continue;
-    }
-
-    const code = courseMatch[1];
-    const nameParts = [courseMatch[2]];
-    i += 1;
-
-    while (i < lines.length && !/^CICLO\s+\d+$/.test(lines[i])) {
-      if (COURSE_CODE_REGEX.test(lines[i])) {
-        break;
-      }
-
-      const current = lines[i];
-      const metaMatch = current.match(/^(.*?)\s(\d+(?:\.\d+)?)\s+(\d+)\s+(.+)$/);
-
-      if (!metaMatch) {
-        nameParts.push(current);
+    if (COURSE_START_REGEX.test(line)) {
+      if (currentCycle === 0) {
         i += 1;
         continue;
       }
 
-      const trailingName = metaMatch[1].trim();
-      if (trailingName.length > 0) {
-        const last = nameParts[nameParts.length - 1]?.trim();
-        if (last !== trailingName) {
-          nameParts.push(trailingName);
+      const sectionLines = [lines[i]];
+      i += 1;
+
+      while (
+        i < lines.length &&
+        !/^CICLO\s+\d+$/.test(lines[i]) &&
+        !COURSE_START_REGEX.test(lines[i])
+      ) {
+        sectionLines.push(lines[i]);
+        i += 1;
+      }
+
+      const blockStr = sectionLines.join(" ").replace(/\s+/g, " ").trim();
+
+      const match = blockStr.match(
+        /^([0-9A-Z]{6,10})\s*-\s*(.+?)\s+(\d+(?:\.\d+)?)\s+(\d+)\s+(.+)$/,
+      );
+
+      if (!match) {
+        continue;
+      }
+
+      const code = match[1];
+      const name = match[2].trim();
+      const credits = Number(match[3]);
+      const sectionNumber = match[4];
+      const rest = match[5];
+
+      const slotRegex =
+        /--\s*(LUNES|MARTES|MIERCOLES|MIÉRCOLES|JUEVES|VIERNES|SABADO|SÁBADO)\s+(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/gi;
+      const timeSlots: TimeSlot[] = [];
+      let slotMatch: RegExpExecArray | null;
+
+      while ((slotMatch = slotRegex.exec(rest)) !== null) {
+        const rawDay = slotMatch[1]
+          .normalize("NFD")
+          .replace(/[^\w\s]/g, "")
+          .toUpperCase() as DayName;
+
+        if (
+          rawDay === "LUNES" ||
+          rawDay === "MARTES" ||
+          rawDay === "MIERCOLES" ||
+          rawDay === "JUEVES" ||
+          rawDay === "VIERNES" ||
+          rawDay === "SABADO"
+        ) {
+          timeSlots.push({
+            day: rawDay,
+            start: slotMatch[2],
+            end: slotMatch[3],
+          });
         }
       }
 
-      const credits = Number(metaMatch[2]);
-      const sectionNumber = metaMatch[3];
-      const teacherAndMeta = metaMatch[4];
+      const firstSlotIndex = rest.search(
+        /--\s*(LUNES|MARTES|MIERCOLES|MIÉRCOLES|JUEVES|VIERNES|SABADO|SÁBADO)/i,
+      );
+      const metaPart =
+        firstSlotIndex !== -1 ? rest.slice(0, firstSlotIndex).trim() : rest;
 
-      const teacherMeta = parseTeacherCapacityAndFirstSlot(teacherAndMeta, lines, i);
-      i += teacherMeta.consumedLines + 1;
+      const metaMatch =
+        metaPart.match(/^(.*?)\s+(\d+)\s+(\d+)(?:\s+--)?$/) ||
+        metaPart.match(/^(.*)$/);
 
-      const timeSlots: TimeSlot[] = [];
-      if (teacherMeta.firstSlot) {
-        timeSlots.push(teacherMeta.firstSlot);
-      }
+      let teacher = "No asignado";
+      let capacity: number | undefined;
+      let enrolled: number | undefined;
 
-      const slotInfo = parseSectionTimeSlots(lines, i);
-      timeSlots.push(...slotInfo.timeSlots);
-      i = slotInfo.nextIndex;
-
-      const name = nameParts.join(" ").replace(/\s+/g, " ").trim();
-      const section: Section = {
-        id: `${code}-${sectionNumber}`,
-        sectionNumber,
-        teacher:
-          teacherMeta.teacher === "--" || teacherMeta.teacher.length === 0
+      if (metaMatch && metaMatch[2] !== undefined && metaMatch[3] !== undefined) {
+        const rawTeacher = metaMatch[1].replace(/--/g, "").trim();
+        teacher =
+          !rawTeacher || rawTeacher === "No asignado" || rawTeacher === "--"
             ? "No asignado"
-            : teacherMeta.teacher,
-        capacity: teacherMeta.capacity,
-        enrolled: teacherMeta.enrolled,
-        timeSlots,
-      };
-
-      const course = getOrCreateCourse(courseMap, code, name, credits, currentCycle);
-
-      if (!course.sections.some((item) => item.id === section.id)) {
-        course.sections.push(section);
+            : rawTeacher;
+        capacity = Number(metaMatch[2]);
+        enrolled = Number(metaMatch[3]);
+      } else {
+        const rawTeacher = metaPart.replace(/--/g, "").trim();
+        teacher =
+          !rawTeacher || rawTeacher === "No asignado" || rawTeacher === "--"
+            ? "No asignado"
+            : rawTeacher;
       }
 
-      const inlineDaySlot = parseInlineDaySlot(lines[i] ?? "");
-      if (inlineDaySlot && !section.timeSlots.some((slot) => slot.start === inlineDaySlot.start && slot.end === inlineDaySlot.end && slot.day === inlineDaySlot.day)) {
-        section.timeSlots.push(inlineDaySlot);
-        i += 1;
+      const course = getOrCreateCourse(
+        courseMap,
+        code,
+        name,
+        credits,
+        currentCycle,
+      );
+
+      const sectionId = `${code}-${sectionNumber}`;
+      if (!course.sections.some((item) => item.id === sectionId)) {
+        course.sections.push({
+          id: sectionId,
+          sectionNumber,
+          teacher,
+          capacity,
+          enrolled,
+          timeSlots,
+        });
       }
+    } else {
+      i += 1;
     }
   }
 

@@ -1,7 +1,8 @@
 "use client";
 
-import type { Course, DayName, Section } from "../types";
-import { timeToMinutes } from "../lib/time";
+import { useMemo } from "react";
+import type { Course, DayName, Section, TimeSlot } from "../types";
+import { formatTeacherName, timeToMinutes } from "../lib/time";
 import { getCoursePalette } from "../lib/palette";
 
 const DAYS: DayName[] = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO"];
@@ -17,20 +18,22 @@ const SHORT_DAYS: Record<DayName, string> = {
 const START_HOUR = 7;
 const END_HOUR = 22;
 
-function getTeacherDisplayName(rawTeacher: string): string {
-  const clean = rawTeacher.replace(/^\s*[0-9A-Z]+\s*-\s*/i, "").trim();
-  if (!clean || clean.toLowerCase() === "no asignado") {
-    return "Sin docente";
+function mergeContiguousSlots(timeSlots: TimeSlot[]): TimeSlot[] {
+  const sorted = [...timeSlots].sort(
+    (a, b) => timeToMinutes(a.start) - timeToMinutes(b.start),
+  );
+  const merged: TimeSlot[] = [];
+
+  for (const slot of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && last.day === slot.day && last.end === slot.start) {
+      last.end = slot.end;
+    } else {
+      merged.push({ ...slot });
+    }
   }
 
-  const [lastNames, givenNames] = clean.split(",").map((part) => part.trim());
-  const firstSurname = lastNames?.split(/\s+/)[0] ?? "";
-  const firstName = givenNames?.split(/\s+/)[0] ?? "";
-
-  if (firstName) {
-    return `${firstSurname}, ${firstName}`;
-  }
-  return firstSurname || "Sin docente";
+  return merged;
 }
 
 interface ScheduleGridProps {
@@ -59,6 +62,15 @@ export function ScheduleGrid({
       sectionCourseMap.set(section.id, course);
     }
   }
+
+  const mergedSections = useMemo(
+    () =>
+      selectedSections.map((section) => ({
+        ...section,
+        timeSlots: mergeContiguousSlots(section.timeSlots),
+      })),
+    [selectedSections],
+  );
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
@@ -118,10 +130,11 @@ export function ScheduleGrid({
                 ))}
 
                 {/* Course section blocks */}
-                {selectedSections.flatMap((section) => {
+                {mergedSections.flatMap((section) => {
                   const course = sectionCourseMap.get(section.id);
                   const isHovered = hoveredCourseCode && course?.code === hoveredCourseCode;
                   const palette = getCoursePalette(course?.code ?? section.id);
+                  const teacherFullName = formatTeacherName(section.teacher);
 
                   return section.timeSlots
                     .filter((slot) => slot.day === day)
@@ -133,11 +146,31 @@ export function ScheduleGrid({
                       const top = (startOffset / totalMinutes) * 100;
                       const height = (duration / totalMinutes) * 100;
 
-                      const showTeacher = duration >= 60;
-                      const showSection = duration >= 75;
-                      const courseLabel =
-                        course?.name ?? course?.code ?? "Curso sin nombre";
-                      const blockLabel = `${courseLabel}, Sección ${section.sectionNumber}, ${day}, ${slot.start} - ${slot.end}${course ? `, ${course.code}` : ""}, Docente: ${getTeacherDisplayName(section.teacher)}`;
+                      const showTeacher = duration >= 45;
+                      const showSection = duration >= 60;
+                      const isHuge = duration >= 180;
+                      const isTall = duration >= 100;
+
+                      const nameSize = isHuge
+                        ? "text-sm sm:text-base font-extrabold leading-snug"
+                        : isTall
+                        ? "text-xs sm:text-sm font-extrabold leading-snug"
+                        : "text-[11px] font-bold leading-tight";
+
+                      const metaSize = isHuge
+                        ? "text-xs font-semibold"
+                        : isTall
+                        ? "text-[11px] font-semibold"
+                        : "text-[10px] font-medium";
+
+                      const badgeSize = isHuge
+                        ? "text-xs px-1.5 py-0.5 rounded-md"
+                        : isTall
+                        ? "text-[10px] px-1 py-0.5 rounded"
+                        : "text-[9px] px-1 rounded";
+
+                      const courseLabel = course?.name ?? course?.code ?? "Curso sin nombre";
+                      const blockLabel = `${courseLabel}, Sección ${section.sectionNumber}, ${day}, ${slot.start} - ${slot.end}${course ? `, ${course.code}` : ""}, Docente: ${teacherFullName}`;
 
                       const blockHandlers = interactive
                         ? {
@@ -156,37 +189,52 @@ export function ScheduleGrid({
                         <article
                           key={`${section.id}-${day}-${slot.start}`}
                           {...blockHandlers}
-                          className={`absolute left-0.5 right-0.5 overflow-hidden rounded-lg border px-2 py-1 text-[10px] transition-all duration-150 shadow-2xs ${
-                            interactive
-                              ? "outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1"
-                              : ""
+                          className={`absolute left-0.5 right-0.5 flex flex-col justify-between overflow-hidden rounded-lg border animate-schedule-block transition-all duration-200 ease-out shadow-2xs ${
+                            isHuge
+                              ? "p-3 gap-1.5"
+                              : isTall
+                              ? "p-2.5 gap-1"
+                              : "p-1.5 gap-0.5"
+                          } ${interactive
+                            ? "outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 cursor-pointer active:scale-[0.98]"
+                            : ""
                           } ${palette.bg} ${palette.border} ${
                             interactive
                               ? isHovered
-                                ? "ring-2 ring-emerald-500 scale-[1.02] z-20 shadow-md"
-                                : "hover:scale-[1.01] hover:z-10"
+                                ? "ring-2 ring-emerald-500 scale-[1.03] z-20 shadow-md"
+                                : "hover:scale-[1.01] hover:z-10 hover:shadow-xs"
                               : ""
                           }`}
                           style={{ top: `${top}%`, height: `${height}%` }}
                         >
                           <div className="flex items-start justify-between gap-1">
-                            <p className={`flex-1 min-w-0 font-extrabold leading-snug tracking-tight break-words ${palette.text}`}>
+                            <p className={`flex-1 min-w-0 tracking-tight break-words ${palette.text} ${nameSize}`}>
                               {course?.name ?? course?.code ?? "Curso"}
                             </p>
                             {showSection && (
-                              <span className={`shrink-0 rounded px-1 text-[9px] font-mono font-bold ${palette.badge}`}>
-                                Sec {section.sectionNumber}
-                              </span>
+                              <div className="flex flex-col items-end gap-0.5 shrink-0">
+                                <span className={`font-mono font-bold ${palette.badge} ${badgeSize}`}>
+                                  Sec {section.sectionNumber}
+                                </span>
+                                {isHuge && course?.code && (
+                                  <span className="font-mono text-[10px] text-slate-500 font-semibold">
+                                    {course.code}
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </div>
-                          {showTeacher && (
-                            <p className="mt-0.5 font-semibold text-slate-700 leading-tight break-words">
-                              {getTeacherDisplayName(section.teacher)}
+
+                          <div className="flex flex-col gap-0.5">
+                            {showTeacher && (
+                              <p className={`text-slate-800 leading-tight break-words ${metaSize}`}>
+                                {teacherFullName}
+                              </p>
+                            )}
+                            <p className={`font-mono text-slate-600 leading-tight ${metaSize}`}>
+                              {slot.start} - {slot.end}
                             </p>
-                          )}
-                          <p className="mt-0.5 font-mono text-slate-600 leading-tight">
-                            {slot.start} - {slot.end}
-                          </p>
+                          </div>
                         </article>
                       );
                     });

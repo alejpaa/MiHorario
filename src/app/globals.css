@@ -41,20 +41,113 @@ body {
   background: #059669;
 }
 
-@keyframes course-reveal-flash {
+/* Authored Motion Keyframes */
+@keyframes schedule-block-pop {
   0% {
-    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.55);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(5, 150, 105, 0);
+    opacity: 0;
+    transform: scale(0.94) translateY(2px);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
-.course-reveal-flash {
-  animation: course-reveal-flash 0.9s ease-out 1;
+@keyframes course-reveal-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.55);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(5, 150, 105, 0.15);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+    transform: scale(1);
+  }
 }
+
+@keyframes modal-backdrop-fade {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes modal-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes drawer-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes alert-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Motion Utility Classes */
+.animate-schedule-block {
+  animation: schedule-block-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.course-reveal-flash {
+  animation: course-reveal-flash 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1;
+}
+
+.animate-modal-backdrop {
+  animation: modal-backdrop-fade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-pop {
+  animation: modal-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-drawer-slide {
+  animation: drawer-slide-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-alert-slide {
+  animation: alert-slide-up 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Respect Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-schedule-block,
+  .course-reveal-flash,
+  .animate-modal-backdrop,
+  .animate-modal-pop,
+  .animate-drawer-slide,
+  .animate-alert-slide {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 
 

@@ -22,3 +22,17 @@ export function normalizeDay(day: string): string {
     .replace(/[^\w\s]/g, "")
     .toUpperCase();
 }
+
+export function formatTeacherName(rawTeacher?: string | null): string {
+  if (!rawTeacher) return "Sin docente";
+  const clean = rawTeacher
+    .replace(/^\s*[0-9A-Z]+\s*-\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!clean || clean.toLowerCase() === "no asignado" || clean === "--") {
+    return "Sin docente";
+  }
+  return clean;
+}
+
