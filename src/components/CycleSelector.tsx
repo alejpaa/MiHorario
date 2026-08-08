@@ -28,65 +28,101 @@ export function CycleSelector({
     .sort((a, b) => a.cycle - b.cycle || a.code.localeCompare(b.code));
 
   return (
-    <section className="rounded-2xl border border-slate-300 bg-white p-4 shadow-sm">
-      <p className="text-sm font-semibold text-slate-800">2) Elige ciclo</p>
-
-      <select
-        className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        value={selectedCycle}
-        onChange={(event) => onCycleChange(Number(event.target.value))}
-      >
-        {cycles.map((cycle) => (
-          <option key={cycle} value={cycle}>
-            Ciclo {cycle}
-          </option>
-        ))}
-      </select>
-
-      <label className="mt-3 flex items-center gap-2 text-sm text-slate-700">
-        <input
-          type="checkbox"
-          checked={allowExtraCourses}
-          onChange={(event) => onAllowExtraCoursesChange(event.target.checked)}
-        />
-        Agregar cursos de otros ciclos (opcional)
-      </label>
-
-      {allowExtraCourses && (
-        <div className="mt-3 max-h-40 space-y-2 overflow-auto rounded-lg border border-slate-200 p-2">
-          {outOfCycleCourses.length === 0 && (
-            <p className="text-xs text-slate-500">No hay cursos para mostrar.</p>
-          )}
-
-          {outOfCycleCourses.map((course) => {
-            const checked = extraCourseCodes.includes(course.code);
-            return (
-              <label
-                key={course.code}
-                className="flex items-start gap-2 rounded-md px-2 py-1 text-xs hover:bg-slate-50"
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={(event) => {
-                    if (event.target.checked) {
-                      onExtraCourseCodesChange([...extraCourseCodes, course.code]);
-                    } else {
-                      onExtraCourseCodesChange(
-                        extraCourseCodes.filter((code) => code !== course.code),
-                      );
-                    }
-                  }}
-                />
-                <span>
-                  <span className="font-medium text-slate-800">{course.code}</span> - {course.name}
-                  <span className="ml-2 text-slate-500">(Ciclo {course.cycle})</span>
-                </span>
-              </label>
-            );
-          })}
+    <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] font-bold text-emerald-800">
+            2
+          </span>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+            Ciclo Académico
+          </h2>
         </div>
-      )}
+      </div>
+
+      {/* Cycle Selector Pills */}
+      <div className="flex flex-wrap gap-1">
+        {cycles.map((cycle) => {
+          const isSelected = selectedCycle === cycle;
+          return (
+            <button
+              key={cycle}
+              type="button"
+              onClick={() => onCycleChange(cycle)}
+              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all duration-150 ${
+                isSelected
+                  ? "bg-emerald-600 text-white shadow-2xs"
+                  : "bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-200/80"
+              }`}
+            >
+              Ciclo {cycle}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Extra courses toggle */}
+      <div className="mt-3 pt-2.5 border-t border-slate-100">
+        <label className="flex cursor-pointer items-center justify-between gap-2 text-xs font-medium text-slate-700">
+          <span>Incluir cursos de otros ciclos</span>
+          <input
+            type="checkbox"
+            checked={allowExtraCourses}
+            onChange={(e) => onAllowExtraCoursesChange(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 bg-white text-emerald-600 focus:ring-emerald-500/30"
+          />
+        </label>
+
+        {allowExtraCourses && (
+          <div className="mt-2 max-h-36 space-y-1 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-2 custom-scrollbar">
+            {outOfCycleCourses.length === 0 && (
+              <p className="text-[11px] text-slate-500 text-center py-2">
+                No hay otros cursos disponibles.
+              </p>
+            )}
+
+            {outOfCycleCourses.map((course) => {
+              const checked = extraCourseCodes.includes(course.code);
+              return (
+                <label
+                  key={course.code}
+                  className={`flex cursor-pointer items-start gap-2 rounded-lg px-2 py-1.5 text-[11px] transition ${
+                    checked
+                      ? "bg-emerald-50 text-emerald-950 font-medium"
+                      : "text-slate-700 hover:bg-slate-200/60"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        onExtraCourseCodesChange([...extraCourseCodes, course.code]);
+                      } else {
+                        onExtraCourseCodesChange(
+                          extraCourseCodes.filter((code) => code !== course.code),
+                        );
+                      }
+                    }}
+                    className="mt-0.5 rounded border-slate-300 text-emerald-600"
+                  />
+                  <div>
+                    <span className="font-mono font-bold text-emerald-700 mr-1.5">
+                      {course.code}
+                    </span>
+                    <span>{course.name}</span>
+                    <span className="ml-1.5 text-[9px] font-mono text-slate-500">
+                      (C{course.cycle})
+                    </span>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
+
+

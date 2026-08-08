@@ -10,6 +10,7 @@ import { ScheduleGrid } from "../components/ScheduleGrid";
 import { getAllConflicts } from "../lib/conflict-checker";
 import { parseUniversityPdf } from "../lib/pdf-parser";
 import { generateSchedules } from "../lib/schedule-solver";
+import { SAMPLE_UNMSM_DATA } from "../lib/sample-data";
 import {
   loadPlannerSession,
   loadSchedules,
@@ -41,6 +42,8 @@ export default function Home() {
   const [autoIndex, setAutoIndex] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const [conflictNotice, setConflictNotice] = useState<ConflictSelectionNotice | null>(null);
+  const [hoveredCourseCode, setHoveredCourseCode] = useState<string | null>(null);
+  const [showSavedModal, setShowSavedModal] = useState(false);
 
   useEffect(() => {
     setSavedSchedules(loadSchedules());
@@ -130,6 +133,14 @@ export default function Home() {
     }
   };
 
+  const loadSampleData = () => {
+    setData(SAMPLE_UNMSM_DATA);
+    setSelectedSections({});
+    setAutoOptions([]);
+    setAutoIndex(0);
+    setSelectedCycle(7);
+  };
+
   const selectSection = (courseCode: string, sectionId: string) => {
     setConflictNotice(null);
     setSelectedSections((prev) => {
@@ -160,7 +171,7 @@ export default function Home() {
   };
 
   const saveCurrentSchedule = () => {
-    const name = window.prompt("Nombre para este horario", `Horario ${savedSchedules.length + 1}`);
+    const name = window.prompt("Nombre para este horario", `Horario UNMSM ${savedSchedules.length + 1}`);
     if (!name) {
       return;
     }
@@ -196,185 +207,221 @@ export default function Home() {
     setConflictNotice(notice);
   };
 
-  const headerBadge = data?.school ?? "Planificador universitario";
-  const headerDescription = data
-    ? "Selecciona ciclo y secciones para construir tu horario ideal sin cruces."
-    : "Sube tu PDF de programacion, arma horarios y guarda tus mejores opciones.";
-  const hasData = Boolean(data);
-
   return (
-    <main
-      className={`min-h-screen bg-[radial-gradient(circle_at_top,#dcfce7_0,#eff6ff_40%,#f8fafc_100%)] p-3 md:p-5 ${
-        hasData ? "xl:h-[100dvh] xl:overflow-hidden" : ""
-      }`}
-    >
-      <div className={`mx-auto flex w-full flex-col ${hasData ? "max-w-[1700px] xl:h-full" : "max-w-6xl"}`}>
-        <header
-          className={`rounded-2xl border border-slate-300 bg-white/90 shadow-sm backdrop-blur ${
-            hasData ? "mb-2 p-2 md:p-2.5" : "mb-4 p-4 md:p-5"
-          } ${
-            hasData ? "" : "mx-auto w-full max-w-5xl"
-          }`}
-        >
-          <div className={hasData ? "" : "mx-auto max-w-3xl text-center"}>
-            <p className={`font-semibold uppercase tracking-[0.18em] text-emerald-700 ${hasData ? "text-[11px]" : "text-xs"}`}>
-              {headerBadge}
-            </p>
-            <h1 className={`font-bold text-slate-900 ${hasData ? "mt-0.5 text-xl leading-tight md:text-2xl" : "mt-2 text-2xl md:text-3xl"}`}>
-              Mi Horario
-            </h1>
-            <p className={`text-slate-600 ${hasData ? "mt-0.5 text-[11px] leading-tight md:text-xs xl:hidden" : "mt-2 text-sm"}`}>
-              {headerDescription}
-            </p>
+    <main className="h-screen w-screen overflow-hidden bg-slate-100 text-slate-900 flex flex-col font-sans">
+      {/*
+        THESIS: Single-viewport (100vh) UNMSM Schedule Solver workspace that replaces dark/neon aggressive styles with a clean, light, minimalist slate & pastel workspace.
+        OWN-WORLD: Slate & Emerald light theme, white cards, subtle border strokes (border-slate-200), soft pastel schedule grid blocks, crisp high-contrast typography.
+        STORY: Student drops official UNMSM PDF, filters by cycle, picks/solves non-overlapping section combinations, and saves schedule presets without page scroll or visual clutter.
+        FIRST VIEWPORT: Top compact light header bar with cycle pills & saved schedule drawer button; Left fixed white sidebar for course search & section accordion cards; Right main area for auto-solver toolbar and 100% viewport-scaled weekly timetable.
+        FORM: Single-viewport minimalist workspace dashboard.
+        FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+      */}
 
-            {data && (
-              <div className={`flex flex-wrap gap-1.5 text-slate-600 ${hasData ? "mt-1 text-[11px]" : "mt-3 text-xs"}`}>
-                {data.faculty && <span className="rounded-full bg-slate-100 px-2.5 py-0.5">{data.faculty}</span>}
-                {data.period && <span className="rounded-full bg-slate-100 px-2.5 py-0.5">Periodo {data.period}</span>}
-                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-emerald-800">
-                  Cursos detectados: {data.courses.length}
+      {/* Header Bar */}
+      <header className="h-14 shrink-0 px-4 border-b border-slate-200 bg-white flex items-center justify-between gap-3 shadow-2xs z-30">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-600 font-black text-white text-xs shadow-2xs">
+              MH
+            </span>
+            <h1 className="font-extrabold text-sm md:text-base text-slate-900 tracking-tight">
+              MiHorario <span className="font-mono text-emerald-700 text-xs font-bold">UNMSM</span>
+            </h1>
+          </div>
+
+          {data && (
+            <div className="hidden md:flex items-center gap-2 text-xs border-l border-slate-200 pl-3">
+              {data.school && (
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                  {data.school}
                 </span>
+              )}
+              {data.period && (
+                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-mono font-bold text-emerald-800">
+                  {data.period}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Header Right Actions */}
+        <div className="flex items-center gap-2">
+          {data && (
+            <button
+              type="button"
+              onClick={() => setShowSavedModal((prev) => !prev)}
+              className="relative flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-slate-300 hover:bg-slate-100 transition"
+            >
+              <span>★ Guardados</span>
+              {savedSchedules.length > 0 && (
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
+                  {savedSchedules.length}
+                </span>
+              )}
+            </button>
+          )}
+
+          {data && (
+            <button
+              type="button"
+              onClick={() => setData(null)}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
+            >
+              Cambiar PDF
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Main Workspace Body */}
+      {!data ? (
+        /* Empty / Initial State */
+        <div className="flex-1 min-h-0 flex items-center justify-center p-4">
+          <div className="w-full max-w-xl space-y-4">
+            {error && (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-bold text-rose-800">
+                {error}
               </div>
             )}
+            <PDFUploader onFileSelected={parsePdf} loading={loadingPdf} onLoadSample={loadSampleData} />
           </div>
-        </header>
-
-        {!data ? (
-          <div className="grid min-h-0 flex-1 place-items-center">
-            <div className="w-full max-w-5xl space-y-4">
-              {error && (
-                <p className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                  {error}
-                </p>
-              )}
-
-              <div className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
-                <PDFUploader onFileSelected={parsePdf} loading={loadingPdf} />
-
-                <section className="flex items-center rounded-2xl border border-slate-300 bg-white p-8 shadow-sm">
-                  <div className="mx-auto max-w-md text-center">
-                    <p className="text-lg font-semibold text-slate-800">Empieza subiendo tu reporte PDF</p>
-                    <p className="mt-2 text-sm text-slate-600">
-                      Detectaremos ciclos, cursos y secciones para que armes tu horario manualmente o con generacion automatica.
-                    </p>
-                  </div>
-                </section>
-              </div>
-
-              <div className="max-w-[420px]">
-                <SavedSchedules items={savedSchedules} onLoad={loadSaved} onDelete={deleteSaved} />
-              </div>
+        </div>
+      ) : (
+        /* Active 100vh Workspace */
+        <div className="flex-1 min-h-0 flex overflow-hidden relative">
+          {/* Left Control & Course Picker Sidebar */}
+          <aside className="w-80 md:w-96 shrink-0 h-full flex flex-col border-r border-slate-200 bg-white p-3 gap-3 overflow-hidden shadow-2xs">
+            <div className="shrink-0">
+              <CycleSelector
+                cycles={data.cycles}
+                selectedCycle={selectedCycle}
+                onCycleChange={setSelectedCycle}
+                allowExtraCourses={allowExtraCourses}
+                onAllowExtraCoursesChange={setAllowExtraCourses}
+                allCourses={data.courses}
+                extraCourseCodes={extraCourseCodes}
+                onExtraCourseCodesChange={setExtraCourseCodes}
+              />
             </div>
-          </div>
-        ) : (
-          <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_310px] 2xl:grid-cols-[220px_minmax(0,1fr)_310px]">
-            <aside className="hidden min-h-0 space-y-4 overflow-hidden 2xl:block">
-              <PDFUploader onFileSelected={parsePdf} loading={loadingPdf} compact />
-              <SavedSchedules items={savedSchedules} onLoad={loadSaved} onDelete={deleteSaved} />
-            </aside>
 
-            <section className="min-h-0 flex flex-col gap-4 overflow-hidden">
-              <section className="flex flex-wrap gap-2 rounded-2xl border border-slate-300 bg-white p-3 shadow-sm">
+            <div className="min-h-0 flex-1">
+              <CourseList
+                courses={activeCourses}
+                allCourses={data.courses}
+                selectedSections={selectedSections}
+                onSelectSection={selectSection}
+                selectedSectionObjects={selectedSectionObjects}
+                onConflictAttempt={handleConflictAttempt}
+                hoveredCourseCode={hoveredCourseCode}
+                onHoverCourse={setHoveredCourseCode}
+              />
+            </div>
+          </aside>
+
+          {/* Right Main Timetable Area */}
+          <main className="flex-1 h-full flex flex-col min-w-0 bg-slate-50 p-3 gap-3 overflow-hidden">
+            {/* Top Solver & Action Bar */}
+            <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-2xs">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={runAutoGeneration}
-                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-2xs transition"
                 >
-                  Generar horario automatico
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Generar Horarios Sin Cruces</span>
                 </button>
+
                 <button
                   type="button"
                   onClick={saveCurrentSchedule}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-100 transition"
                 >
-                  Guardar horario actual
+                  ★ Guardar
                 </button>
+              </div>
 
-                {autoOptions.length > 0 && (
-                  <div className="ml-auto flex items-center gap-2 text-sm text-slate-700">
-                    <button
-                      type="button"
-                      onClick={() => loadAutoOption(Math.max(0, autoIndex - 1))}
-                      className="rounded-md border border-slate-300 px-2 py-1"
-                    >
-                      ←
-                    </button>
-                    <span>
-                      Opcion {autoIndex + 1} / {autoOptions.length}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => loadAutoOption(Math.min(autoOptions.length - 1, autoIndex + 1))}
-                      className="rounded-md border border-slate-300 px-2 py-1"
-                    >
-                      →
-                    </button>
-                  </div>
-                )}
-              </section>
-
-              {conflicts.length > 0 && (
-                <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  Hay {conflicts.length} cruce(s) entre secciones seleccionadas.
-                </p>
+              {/* Solver option selector */}
+              {autoOptions.length > 0 && (
+                <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700 font-mono">
+                  <button
+                    type="button"
+                    onClick={() => loadAutoOption(Math.max(0, autoIndex - 1))}
+                    disabled={autoIndex === 0}
+                    className="rounded px-1.5 py-0.5 text-slate-500 hover:bg-slate-200 hover:text-slate-900 disabled:opacity-30"
+                  >
+                    ←
+                  </button>
+                  <span className="font-extrabold text-emerald-800">
+                    Opción {autoIndex + 1} de {autoOptions.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => loadAutoOption(Math.min(autoOptions.length - 1, autoIndex + 1))}
+                    disabled={autoIndex === autoOptions.length - 1}
+                    className="rounded px-1.5 py-0.5 text-slate-500 hover:bg-slate-200 hover:text-slate-900 disabled:opacity-30"
+                  >
+                    →
+                  </button>
+                </div>
               )}
 
-              <div className="min-h-0 flex-1 xl:flex xl:items-center xl:justify-center">
-                <div className="h-full w-full xl:max-w-[1220px]">
-                  <ScheduleGrid selectedSections={selectedSectionObjects} courses={activeCourses} />
-                </div>
-              </div>
-            </section>
+              {/* Conflict Status Pill */}
+              {conflicts.length > 0 && (
+                <span className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                  {conflicts.length} cruce(s) detectado(s)
+                </span>
+              )}
+            </div>
 
-            <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto overscroll-contain pr-1 [scrollbar-gutter:stable]">
-              <div className="shrink-0 space-y-4 2xl:hidden">
-                <PDFUploader onFileSelected={parsePdf} loading={loadingPdf} compact />
-                <SavedSchedules items={savedSchedules} onLoad={loadSaved} onDelete={deleteSaved} />
-              </div>
-
-              <div className="shrink-0">
-                <CycleSelector
-                  cycles={data.cycles}
-                  selectedCycle={selectedCycle}
-                  onCycleChange={setSelectedCycle}
-                  allowExtraCourses={allowExtraCourses}
-                  onAllowExtraCoursesChange={setAllowExtraCourses}
-                  allCourses={data.courses}
-                  extraCourseCodes={extraCourseCodes}
-                  onExtraCourseCodesChange={setExtraCourseCodes}
-                />
-              </div>
-
-              <div className="min-h-0 flex-1">
-                <CourseList
-                  courses={activeCourses}
-                  allCourses={data.courses}
-                  selectedSections={selectedSections}
-                  onSelectSection={selectSection}
-                  selectedSectionObjects={selectedSectionObjects}
-                  onConflictAttempt={handleConflictAttempt}
-                />
-              </div>
-            </aside>
-          </div>
-        )}
-
-        {conflictNotice && (
-          <div className="pointer-events-none fixed bottom-4 right-4 z-50 w-[min(92vw,430px)]">
-            <div className="pointer-events-auto">
-              <AppAlert
-                tone="warning"
-                title={`Cruce detectado en ${conflictNotice.courseCode} - Sec ${conflictNotice.sectionNumber}`}
-                description="Esta seleccion se cruza con las siguientes secciones."
-                items={conflictNotice.conflicts.map(
-                  (item) => `${item.code} - ${item.name} (Sec ${item.sectionNumber})`,
-                )}
-                onClose={() => setConflictNotice(null)}
+            {/* Schedule Grid Container */}
+            <div className="flex-1 min-h-0 w-full relative">
+              <ScheduleGrid
+                selectedSections={selectedSectionObjects}
+                courses={activeCourses}
+                hoveredCourseCode={hoveredCourseCode}
+                onHoverCourse={setHoveredCourseCode}
               />
             </div>
+          </main>
+
+          {/* Saved Schedules Overlay Drawer */}
+          {showSavedModal && (
+            <div className="absolute right-4 top-16 z-50 w-80 h-[calc(100%-80px)]">
+              <SavedSchedules
+                items={savedSchedules}
+                onLoad={loadSaved}
+                onDelete={deleteSaved}
+                onClose={() => setShowSavedModal(false)}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Floating Conflict Alert Notice */}
+      {conflictNotice && (
+        <div className="pointer-events-none fixed bottom-4 right-4 z-50 w-[min(92vw,420px)]">
+          <div className="pointer-events-auto shadow-xl">
+            <AppAlert
+              tone="warning"
+              title={`Cruce detectado en ${conflictNotice.courseCode} - Sec ${conflictNotice.sectionNumber}`}
+              description="Esta selección genera solapamiento de horario:"
+              items={conflictNotice.conflicts.map(
+                (item) => `${item.code} - ${item.name} (Sec ${item.sectionNumber})`,
+              )}
+              onClose={() => setConflictNotice(null)}
+            />
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </main>
   );
 }
+
+

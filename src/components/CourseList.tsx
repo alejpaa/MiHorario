@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Course, Section } from "../types";
 import { sectionsHaveConflict } from "../lib/conflict-checker";
 
@@ -23,10 +24,12 @@ interface CourseListProps {
   onSelectSection: (courseCode: string, sectionId: string) => void;
   selectedSectionObjects: Section[];
   onConflictAttempt?: (notice: ConflictSelectionNotice) => void;
+  hoveredCourseCode?: string | null;
+  onHoverCourse?: (code: string | null) => void;
 }
 
 function formatSlots(section: Section): string {
-  return section.timeSlots.map((slot) => `${slot.day} ${slot.start}-${slot.end}`).join(" | ");
+  return section.timeSlots.map((slot) => `${slot.day.slice(0, 3)} ${slot.start}-${slot.end}`).join(" · ");
 }
 
 export function CourseList({
@@ -36,7 +39,11 @@ export function CourseList({
   onSelectSection,
   selectedSectionObjects,
   onConflictAttempt,
+  hoveredCourseCode,
+  onHoverCourse,
 }: CourseListProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const sectionCourseMap = new Map<string, Course>();
   for (const course of allCourses) {
     for (const section of course.sections) {
@@ -44,21 +51,94 @@ export function CourseList({
     }
   }
 
+  const filteredCourses = courses.filter((course) => {
+    if (!searchTerm.trim()) {
+      return true;
+    }
+    const term = searchTerm.toLowerCase().trim();
+    return (
+      course.code.toLowerCase().includes(term) ||
+      course.name.toLowerCase().includes(term) ||
+      course.sections.some((sec) => sec.teacher.toLowerCase().includes(term))
+    );
+  });
+
   return (
-    <section className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-300 bg-white p-4 shadow-sm">
-      <div className="mb-3 flex items-end justify-between">
-        <p className="text-sm font-semibold text-slate-800">3) Elige secciones</p>
-        <p className="text-xs text-slate-500">Cursos: {courses.length}</p>
+    <section className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="mb-2.5 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] font-bold text-emerald-800">
+            3
+          </span>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+            Cursos ({filteredCourses.length})
+          </h2>
+        </div>
+        <span className="text-[10px] font-mono text-slate-500">
+          {Object.keys(selectedSections).length} selecc.
+        </span>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
-        {courses.map((course) => {
-          return (
-            <article key={course.code} className="rounded-xl border border-slate-200 p-2.5">
-              <p className="text-xs text-slate-500">{course.code}</p>
-              <p className="text-sm font-semibold text-slate-800">{course.name}</p>
+      {/* Search Input */}
+      <div className="mb-2.5 relative">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar curso, código o docente..."
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
+        />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => setSearchTerm("")}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+          >
+            ✕
+          </button>
+        )}
+      </div>
 
-              <div className="mt-2 space-y-2">
+      {/* Course & Section List */}
+      <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-1 custom-scrollbar">
+        {filteredCourses.map((course) => {
+          const isSelectedCourse = Boolean(selectedSections[course.code]);
+          const isHovered = hoveredCourseCode === course.code;
+
+          return (
+            <article
+              key={course.code}
+              onMouseEnter={() => onHoverCourse?.(course.code)}
+              onMouseLeave={() => onHoverCourse?.(null)}
+              className={`rounded-xl border p-2.5 transition-all duration-150 ${
+                isSelectedCourse
+                  ? "border-emerald-300 bg-emerald-50/40"
+                  : isHovered
+                    ? "border-slate-300 bg-slate-50"
+                    : "border-slate-200 bg-white"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-[10px] font-extrabold text-emerald-700">
+                      {course.code}
+                    </span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600">
+                      Ciclo {course.cycle}
+                    </span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600">
+                      {course.credits} cr.
+                    </span>
+                  </div>
+                  <h3 className="mt-0.5 text-xs font-bold text-slate-900 leading-snug">
+                    {course.name}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Sections list */}
+              <div className="mt-2 space-y-1.5">
                 {course.sections.map((section) => {
                   const selected = selectedSections[course.code] === section.id;
                   const conflictingSections: Array<{ code: string; name: string; sectionNumber: string }> = [];
@@ -104,19 +184,40 @@ export function CourseList({
 
                         onSelectSection(course.code, section.id);
                       }}
-                      className={`w-full rounded-lg border px-3 py-2 text-left text-xs transition ${
+                      className={`group w-full rounded-lg border px-2.5 py-1.5 text-left text-[11px] transition-all duration-150 ${
                         selected
-                          ? "border-emerald-600 bg-emerald-50"
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-950 font-medium shadow-2xs"
                           : hasConflict
-                            ? "border-rose-300 bg-rose-50"
-                            : "border-slate-200 hover:border-slate-400"
+                            ? "border-rose-300 bg-rose-50 text-rose-900 hover:border-rose-400"
+                            : "border-slate-200 bg-slate-50/70 text-slate-700 hover:border-slate-300 hover:bg-slate-100"
                       }`}
                     >
-                      <p className="font-semibold text-slate-800">Seccion {section.sectionNumber}</p>
-                      <p className="text-slate-600">Docente: {section.teacher}</p>
-                      <p className="mt-1 text-slate-500">{formatSlots(section) || "Sin horario detectado"}</p>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                          {selected && (
+                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                          )}
+                          Sección {section.sectionNumber}
+                        </span>
+                        {section.capacity && (
+                          <span className="text-[9px] font-mono text-slate-500">
+                            {section.enrolled ?? 0}/{section.capacity} vac.
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="mt-0.5 truncate text-[10px] text-slate-600">
+                        {section.teacher}
+                      </p>
+                      <p className="mt-0.5 font-mono text-[10px] text-slate-500">
+                        {formatSlots(section) || "Horario pendiente"}
+                      </p>
+
                       {hasConflict && (
-                        <p className="mt-1 text-rose-700">Se cruza con: {conflictSummary}</p>
+                        <p className="mt-1 text-[10px] font-bold text-rose-700 flex items-center gap-1">
+                          <span>⚠ Cruce con:</span>
+                          <span className="font-mono text-[9px] truncate">{conflictSummary}</span>
+                        </p>
                       )}
                     </button>
                   );
@@ -126,12 +227,14 @@ export function CourseList({
           );
         })}
 
-        {courses.length === 0 && (
-          <p className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500">
-            No hay cursos disponibles para este filtro.
-          </p>
+        {filteredCourses.length === 0 && (
+          <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-xs text-slate-500">
+            No se encontraron cursos con el filtro actual.
+          </div>
         )}
       </div>
     </section>
   );
 }
+
+

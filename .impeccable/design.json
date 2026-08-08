@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-07T19:25:23Z",
+  "title": "Design System: MiHorario UNMSM (Light Minimalist)",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Emerald Green",
+        "canonical": "#059669",
+        "tonalRamp": [
+          "#ecfdf5",
+          "#d1fae5",
+          "#a7f3d0",
+          "#6ee7b7",
+          "#34d399",
+          "#10b981",
+          "#059669",
+          "#047857"
+        ]
+      },
+      "light-bg": {
+        "role": "neutral",
+        "displayName": "Light Slate Canvas",
+        "canonical": "#f8fafc",
+        "tonalRamp": [
+          "#ffffff",
+          "#f8fafc",
+          "#f1f5f9",
+          "#e2e8f0",
+          "#cbd5e1",
+          "#94a3b8",
+          "#64748b",
+          "#0f172a"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Geist Display",
+        "purpose": "App branding and titles."
+      },
+      "body": {
+        "displayName": "Geist Body",
+        "purpose": "Course lists, controls, and timetable grids."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-subtle",
+        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "purpose": "Subtle tactile depth for white surface cards."
+      }
+    ],
+    "motion": [
+      {
+        "name": "hover-fade",
+        "value": "transition-all duration-150 ease-out",
+        "purpose": "Smooth transition on course selection."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Emerald button for running auto solver.",
+      "html": "<button class=\"ds-btn-primary\">⚡ Generar Horarios Sin Cruces</button>",
+      "css": ".ds-btn-primary { background: #059669; color: #ffffff; font-weight: 700; font-size: 12px; border: none; padding: 6px 14px; border-radius: 12px; cursor: pointer; transition: all 0.15s ease-out; } .ds-btn-primary:hover { background: #047857; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Pristine Academic Studio",
+    "overview": "MiHorario UNMSM is a light, clean, minimalist single-viewport workspace designed for UNMSM students.",
+    "keyCharacteristics": [
+      "Light & Minimalist Slate Aesthetic",
+      "Soft Natural Pastel Course Blocks",
+      "Zero Page Scroll (100vh workspace)",
+      "High-Contrast Typography"
+    ],
+    "rules": [
+      {
+        "name": "The Single-Viewport Rule",
+        "body": "The main workspace container must fit within 100% of the viewport height (h-screen overflow-hidden).",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "Do keep colors soft, natural, and highly readable.",
+      "Do maintain a strict 100vh viewport fit without page scrolling."
+    ],
+    "donts": [
+      "Don't use neon, glowing dark backgrounds, or aggressive contrast halos.",
+      "Don't allow window scrollbars or floating modals that hide the timetable grid."
+    ]
+  }
+}
