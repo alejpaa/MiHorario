@@ -73,9 +73,9 @@ export function ScheduleGrid({
   );
 
   return (
-    <section className="flex h-full min-h-0 w-full flex-col rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-      <div className="min-h-0 flex-1 overflow-hidden">
-        <div className="flex h-full w-full flex-col">
+    <section className="flex h-full min-h-0 w-full flex-col rounded-2xl border border-slate-200 bg-white p-2 sm:p-3 shadow-sm">
+      <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar">
+        <div className="flex h-full w-full min-w-[560px] md:min-w-0 flex-col">
           {/* Day Headers */}
           <div className="grid grid-cols-[48px_repeat(6,minmax(0,1fr))] gap-1.5 text-xs font-bold text-slate-700">
             <div className="flex items-center justify-center text-[10px] uppercase text-slate-400 font-mono">

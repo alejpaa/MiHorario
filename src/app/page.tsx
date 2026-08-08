@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { AppAlert } from "../components/AppAlert";
 import { CourseList, type ConflictSelectionNotice } from "../components/CourseList";
@@ -85,6 +86,8 @@ export default function Home() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [scheduleName, setScheduleName] = useState("");
   const [showHelp, setShowHelp] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"courses" | "schedule">("schedule");
   const [solveNotice, setSolveNotice] = useState<{ tone: "success" | "info"; title: string; description: string } | null>(null);
   const [undoableDelete, setUndoableDelete] = useState<{ item: SavedSchedule; index: number } | null>(null);
 
@@ -375,22 +378,145 @@ export default function Home() {
 
       {/* Main Workspace Body */}
       {!data ? (
-        /* Empty / Initial State */
-        <div className="flex-1 min-h-0 flex items-center justify-center p-4">
-          <div className="w-full max-w-xl space-y-4">
+        /* Empty / Initial State (Hero Section with SUM Guide) */
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-8 flex items-center justify-center">
+          <div className="w-full max-w-5xl space-y-6">
+            {/* Hero Header */}
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 border border-emerald-200 px-3.5 py-1 text-xs font-extrabold text-emerald-800">
+                ✨ Planificador Universitario UNMSM
+              </div>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
+                Arma tu horario ideal sin cruces en segundos
+              </h2>
+              <p className="text-xs md:text-sm text-slate-600 max-w-xl mx-auto">
+                Obtén tu reporte de <span className="font-bold text-slate-800">Programación de asignaturas</span> del SUM, sube el PDF aquí y genera combinaciones automáticamente.
+              </p>
+            </div>
+
             {error && (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-bold text-rose-800">
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-bold text-rose-800 shadow-sm">
                 {error}
               </div>
             )}
-            <PDFUploader onFileSelected={parsePdf} loading={loadingPdf} onLoadSample={loadSampleData} />
+
+            {/* Hero Main Grid: Left Uploader | Right SUM Guide */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              {/* Left Column: PDF Uploader */}
+              <div className="lg:col-span-5 flex flex-col justify-center">
+                <PDFUploader onFileSelected={parsePdf} loading={loadingPdf} onLoadSample={loadSampleData} />
+              </div>
+
+              {/* Right Column: Guide for downloading from SUM */}
+              <div className="lg:col-span-7 rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold text-xs">
+                        ?
+                      </span>
+                      <h3 className="text-sm font-extrabold text-slate-900">
+                        ¿Cómo descargar tu PDF en el SUM?
+                      </h3>
+                    </div>
+                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                      Paso a paso
+                    </span>
+                  </div>
+
+                  {/* Step Instructions */}
+                  <ol className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mb-4">
+                    <li className="flex gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white font-extrabold text-[10px]">
+                        1
+                      </span>
+                      <div>
+                        <p className="font-bold text-slate-800">Ir a Programación</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          En el SUM, selecciona <strong className="text-slate-700">Programación de asignaturas</strong>.
+                        </p>
+                      </div>
+                    </li>
+
+                    <li className="flex gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white font-extrabold text-[10px]">
+                        2
+                      </span>
+                      <div>
+                        <p className="font-bold text-slate-800">Descargar PDF</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          Haz clic en <strong className="text-slate-700">Descargar</strong> (icono PDF) para guardar tu reporte.
+                        </p>
+                      </div>
+                    </li>
+                  </ol>
+                </div>
+
+                {/* Guide Image Box */}
+                <div
+                  onClick={() => setShowGuideModal(true)}
+                  className="group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-slate-900/5 p-1 transition-all hover:border-emerald-400 hover:shadow-md"
+                  title="Haz clic para ampliar la guía"
+                >
+                  <Image
+                    src="/GUIDE.jpg"
+                    alt="Guía para descargar el PDF desde el SUM UNMSM: Seleccionar Programación de Asignaturas y presionar Descargar"
+                    width={800}
+                    height={450}
+                    className="w-full h-auto max-h-56 md:max-h-64 object-contain mx-auto rounded-xl transition duration-300 group-hover:scale-[1.01]"
+                  />
+                  <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-2xl">
+                    <span className="rounded-xl bg-slate-900/90 px-3 py-1.5 text-xs font-bold text-white shadow-md flex items-center gap-1.5">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                      </svg>
+                      Ver captura ampliada
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
         /* Active 100vh Workspace */
-        <div className="flex-1 min-h-0 flex overflow-hidden relative">
+        <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden relative">
+          {/* Mobile View Switcher Bar */}
+          <div className="md:hidden shrink-0 flex items-center p-1 bg-slate-200/80 border-b border-slate-200 gap-1 z-20">
+            <button
+              type="button"
+              onClick={() => setMobileTab("courses")}
+              className={`flex-1 py-2 text-xs font-extrabold rounded-xl transition flex items-center justify-center gap-1.5 ${
+                mobileTab === "courses"
+                  ? "bg-white text-emerald-800 shadow-2xs border border-slate-200/80"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <span>📚 Elegir Cursos</span>
+              <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono">
+                {activeCourses.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileTab("schedule")}
+              className={`flex-1 py-2 text-xs font-extrabold rounded-xl transition flex items-center justify-center gap-1.5 ${
+                mobileTab === "schedule"
+                  ? "bg-white text-emerald-800 shadow-2xs border border-slate-200/80"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <span>🗓️ Ver Horario</span>
+              {selectedSectionObjects.length > 0 && (
+                <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-mono text-white">
+                  {selectedSectionObjects.length}
+                </span>
+              )}
+            </button>
+          </div>
+
           {/* Left Control & Course Picker Sidebar */}
-          <aside className="w-80 md:w-96 shrink-0 h-full flex flex-col border-r border-slate-200 bg-white p-3 gap-3 overflow-hidden shadow-2xs">
+          <aside className={`${mobileTab === "courses" ? "flex" : "hidden"} md:flex w-full md:w-80 lg:w-96 shrink-0 h-full flex-col border-r border-slate-200 bg-white p-3 gap-3 overflow-hidden shadow-2xs`}>
             <div className="shrink-0">
               <CycleSelector
                 cycles={data.cycles}
@@ -421,7 +547,7 @@ export default function Home() {
           </aside>
 
           {/* Right Main Timetable Area */}
-          <main className="flex-1 h-full flex flex-col min-w-0 bg-slate-50 p-3 gap-3 overflow-hidden">
+          <main className={`${mobileTab === "schedule" ? "flex" : "hidden"} md:flex flex-1 h-full flex-col min-w-0 bg-slate-50 p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden`}>
             {/* Top Solver & Action Bar */}
             <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-2xs">
               <div className="flex items-center gap-2">
@@ -575,7 +701,7 @@ export default function Home() {
 
           {/* Saved Schedules Overlay Drawer */}
           {showSavedModal && (
-            <div className="absolute right-4 top-16 z-50 w-80 h-[calc(100%-80px)]">
+            <div className="absolute right-2 sm:right-4 top-16 z-50 w-[calc(100vw-16px)] sm:w-80 max-w-sm h-[calc(100%-80px)]">
               <SavedSchedules
                 items={savedSchedules}
                 onLoad={loadSaved}
@@ -741,6 +867,39 @@ export default function Home() {
               Tu PDF y tus horarios se procesan y guardan <span className="font-bold">solo en tu navegador</span>.
               No se suben a ningún servidor.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Guide Image Modal */}
+      {showGuideModal && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/70 p-4 animate-modal-backdrop"
+          onClick={() => setShowGuideModal(false)}
+        >
+          <div
+            className="relative max-w-4xl w-full rounded-2xl bg-white p-3 shadow-2xl animate-modal-pop"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 px-2 border-b border-slate-100 mb-2">
+              <h4 className="text-xs font-bold text-slate-800">
+                Guía del SUM UNMSM: Descargar Programación de Asignaturas
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowGuideModal(false)}
+                className="rounded-lg bg-slate-100 px-2 py-1 text-slate-600 hover:bg-slate-200 text-xs font-bold transition"
+              >
+                ✕ Cerrar
+              </button>
+            </div>
+            <Image
+              src="/GUIDE.jpg"
+              alt="Guía para descargar el PDF desde el SUM UNMSM"
+              width={1200}
+              height={675}
+              className="w-full h-auto max-h-[80vh] object-contain rounded-xl"
+            />
           </div>
         </div>
       )}
