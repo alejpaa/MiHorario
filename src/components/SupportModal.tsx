@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 
 interface SupportModalProps {
@@ -8,7 +8,6 @@ interface SupportModalProps {
 }
 
 export function SupportModal({ onClose }: SupportModalProps) {
-  const [activeQr, setActiveQr] = useState<"official" | "custom">("official");
   const onCloseRef = useRef(onClose);
 
   useEffect(() => {
@@ -68,38 +67,12 @@ export function SupportModal({ onClose }: SupportModalProps) {
             <strong className="font-bold text-slate-800">MiHorario UNMSM</strong> es un proyecto 100% gratuito e independiente. Si te ahorró tiempo al armar tu horario, ¡tu apoyo voluntario ayuda mucho a mantener el servicio activo!
           </p>
 
-          {/* QR Style Switcher */}
-          <div className="flex items-center justify-center gap-1 rounded-2xl bg-slate-100 p-1 text-xs font-bold text-slate-600">
-            <button
-              type="button"
-              onClick={() => setActiveQr("official")}
-              className={`flex-1 rounded-xl py-1.5 px-3 text-center transition ${
-                activeQr === "official"
-                  ? "bg-purple-600 text-white shadow-2xs"
-                  : "hover:text-slate-900"
-              }`}
-            >
-              Yape Oficial
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveQr("custom")}
-              className={`flex-1 rounded-xl py-1.5 px-3 text-center transition ${
-                activeQr === "custom"
-                  ? "bg-emerald-600 text-white shadow-2xs"
-                  : "hover:text-slate-900"
-              }`}
-            >
-              Estilo MiHorario
-            </button>
-          </div>
-
-          {/* QR Display Frame */}
-          <div className="relative mx-auto flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-slate-50/60 p-5 shadow-xs">
+          {/* QR Display Frame (Yape Oficial) */}
+          <div className="relative mx-auto flex flex-col items-center justify-center rounded-3xl border border-purple-100 bg-purple-50/40 p-5 shadow-xs">
             <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-md">
               <Image
-                src={activeQr === "official" ? "/yape-png.png" : "/qr.svg"}
-                alt="Código QR Yape para donaciones"
+                src="/yape-png.png"
+                alt="Código QR Yape oficial para donaciones"
                 width={240}
                 height={240}
                 className="h-56 w-56 object-contain rounded-lg"
@@ -109,7 +82,7 @@ export function SupportModal({ onClose }: SupportModalProps) {
 
             <div className="mt-4 text-center">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 border border-purple-200 px-3 py-1 text-[11px] font-extrabold text-purple-900">
-                <span>📱</span> Escanea y yapea desde tu app
+                <span>📱</span> Escanea y yapea desde tu app de Yape
               </span>
             </div>
           </div>

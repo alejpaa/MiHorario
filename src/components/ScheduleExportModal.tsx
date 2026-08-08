@@ -14,6 +14,7 @@ interface ScheduleExportModalProps {
   school?: string;
   cycle: number;
   onClose: () => void;
+  onOpenSupport?: () => void;
 }
 
 type GenerationStatus = "generating" | "done" | "failed";
@@ -26,6 +27,7 @@ export function ScheduleExportModal({
   school,
   cycle,
   onClose,
+  onOpenSupport,
 }: ScheduleExportModalProps) {
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus>("generating");
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
@@ -135,7 +137,7 @@ export function ScheduleExportModal({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4">
           {generationStatus === "generating" && (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-500">
               <span className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-600" />
@@ -155,7 +157,7 @@ export function ScheduleExportModal({
               <img
                 src={preview}
                 alt="Vista previa del horario exportado"
-                className="mx-auto max-h-[62vh] w-full object-contain rounded-xl border border-slate-200 shadow-sm"
+                className="mx-auto max-h-[58vh] w-full object-contain rounded-xl border border-slate-200 shadow-sm"
               />
 
               {copyStatus === "copied" && (
@@ -169,27 +171,66 @@ export function ScheduleExportModal({
                   No se pudo copiar automáticamente. Usa &ldquo;Descargar PNG&rdquo; y comparte el archivo.
                 </p>
               )}
+
+              {onOpenSupport && (
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-purple-200 bg-gradient-to-r from-purple-50 via-white to-emerald-50 p-3 shadow-2xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-purple-600 font-extrabold text-white text-xs shadow-2xs">
+                      💜
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 truncate">
+                        ¿Te ayudó la herramienta?
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate">
+                        Puedes apoyar voluntariamente con Yape para mantener el proyecto.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onOpenSupport}
+                    className="shrink-0 rounded-xl bg-purple-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-2xs hover:bg-purple-700 transition"
+                  >
+                    Apoyar con Yape
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200 px-5 py-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
-          >
-            Cerrar
-          </button>
-          {generationStatus === "done" && preview && (
-            <a
-              href={preview}
-              download="mi-horario.png"
-              className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-emerald-700 transition"
+        <div className="flex shrink-0 items-center justify-between border-t border-slate-200 px-5 py-3">
+          {onOpenSupport ? (
+            <button
+              type="button"
+              onClick={onOpenSupport}
+              className="flex items-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-extrabold text-purple-900 hover:bg-purple-100 transition"
             >
-              Descargar PNG
-            </a>
+              <span>💜</span>
+              <span>Yapear / Apoyar</span>
+            </button>
+          ) : (
+            <div />
           )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+            >
+              Cerrar
+            </button>
+            {generationStatus === "done" && preview && (
+              <a
+                href={preview}
+                download="mi-horario.png"
+                className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-emerald-700 transition"
+              >
+                Descargar PNG
+              </a>
+            )}
+          </div>
         </div>
       </div>
 

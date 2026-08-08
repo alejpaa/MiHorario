@@ -76,7 +76,7 @@ export function PDFUploader({
           Carga tu reporte oficial de UNMSM
         </h2>
         <p className="mt-2 text-xs md:text-sm text-slate-600 leading-relaxed">
-          Arrastra tu PDF de <span className="font-bold text-emerald-700">Programación de Asignaturas</span> (FISI / UNMSM). Extraeremos automáticamente todos los cursos, docentes, ciclos y secciones.
+          Arrastra tu PDF de <span className="font-bold text-emerald-700">Programación de Asignaturas</span> (UNMSM). Extraeremos automáticamente todos los cursos, docentes, ciclos y secciones.
         </p>
 
         <button
@@ -142,7 +142,7 @@ export function PDFUploader({
               onClick={onLoadSample}
               className="rounded-lg bg-emerald-50 px-3 py-1.5 font-bold text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition"
             >
-              Probar Demo UNMSM (FISI)
+              Probar Demo UNMSM
             </button>
           </div>
         )}

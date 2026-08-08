@@ -819,6 +819,10 @@ export default function Home() {
           school={data.school}
           cycle={selectedCycle}
           onClose={() => setShowExportModal(false)}
+          onOpenSupport={() => {
+            setShowExportModal(false);
+            setShowSupportModal(true);
+          }}
         />
       )}
 

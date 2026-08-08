@@ -19,7 +19,7 @@ MiHorario allows UNMSM students to upload official university PDF schedule docum
 An instant, client-side, zero-backend schedule solver tailored specifically to UNMSM PDF formats that eliminates manual timetable overlap calculations and trial-and-error enrollment stress.
 
 ## Operating Context
-Used during course enrollment periods on laptop and mobile browsers. Students upload PDF course guides issued by UNMSM faculties (e.g. FISI), filter courses by academic cycle, add cross-cycle courses, resolve overlaps, and save preferred schedule combinations to local storage.
+Used during course enrollment periods on laptop and mobile browsers. Students upload PDF course guides issued by UNMSM faculties, filter courses by academic cycle, add cross-cycle courses, resolve overlaps, and save preferred schedule combinations to local storage.
 
 ## Capabilities and Constraints
 - Capabilities: Client-side PDF text extraction and regex parsing for UNMSM schedules, cycle-based course filtering, cross-cycle extra course inclusion, real-time time slot conflict detection, automated combination solver for non-overlapping schedules, and localStorage persistence for saved options.
