@@ -25,6 +25,11 @@ import type { Course, ParsedScheduleData, SavedSchedule, Section } from "../type
 
 const DAY_ORDER = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO"] as const;
 
+/**
+ * Feature flag: Cambia a `true` para activar los botones y tarjetas de apoyo/donación con Yape en toda la aplicación.
+ */
+const ENABLE_YAPE_SUPPORT = false;
+
 interface ScheduleOptionSummary {
   courseCount: number;
   occupiedDays: boolean[];
@@ -341,16 +346,18 @@ export default function Home() {
 
         {/* Header Right Actions */}
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowSupportModal(true)}
-            className="flex items-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-purple-900 shadow-2xs transition"
-            title="Apoyar el proyecto voluntariamente con Yape"
-          >
-            <span>💜</span>
-            <span className="hidden sm:inline">Apoyar con Yape</span>
-            <span className="sm:hidden">Yape</span>
-          </button>
+          {ENABLE_YAPE_SUPPORT && (
+            <button
+              type="button"
+              onClick={() => setShowSupportModal(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-purple-900 shadow-2xs transition"
+              title="Apoyar el proyecto voluntariamente con Yape"
+            >
+              <span>💜</span>
+              <span className="hidden sm:inline">Apoyar con Yape</span>
+              <span className="sm:hidden">Yape</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -491,28 +498,30 @@ export default function Home() {
             </div>
 
             {/* Hero Support Banner */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-purple-200/80 bg-gradient-to-r from-purple-50/90 via-white to-emerald-50/90 p-4 shadow-2xs">
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-600 font-extrabold text-white text-base shadow-2xs">
-                  💜
-                </span>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">
-                    ¿Te sirvió MiHorario UNMSM?
-                  </p>
-                  <p className="text-[11px] text-slate-600">
-                    Es un proyecto 100% libre e independiente. Si te ayuda, puedes apoyar voluntariamente con Yape.
-                  </p>
+            {ENABLE_YAPE_SUPPORT && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-purple-200/80 bg-gradient-to-r from-purple-50/90 via-white to-emerald-50/90 p-4 shadow-2xs">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-600 font-extrabold text-white text-base shadow-2xs">
+                    💜
+                  </span>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">
+                      ¿Te sirvió MiHorario UNMSM?
+                    </p>
+                    <p className="text-[11px] text-slate-600">
+                      Es un proyecto 100% libre e independiente. Si te ayuda, puedes apoyar voluntariamente con Yape.
+                    </p>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSupportModal(true)}
+                  className="rounded-xl bg-purple-600 px-3.5 py-1.5 text-xs font-extrabold text-white shadow-2xs hover:bg-purple-700 transition"
+                >
+                  Apoyar con Yape
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowSupportModal(true)}
-                className="rounded-xl bg-purple-600 px-3.5 py-1.5 text-xs font-extrabold text-white shadow-2xs hover:bg-purple-700 transition"
-              >
-                Apoyar con Yape
-              </button>
-            </div>
+            )}
           </div>
         </div>
       ) : (
@@ -634,15 +643,17 @@ export default function Home() {
                   <span>Exportar</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setShowSupportModal(true)}
-                  className="flex items-center gap-1 sm:gap-1.5 rounded-xl border border-purple-200 bg-purple-50 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-purple-900 hover:border-purple-300 hover:bg-purple-100 transition min-h-[36px]"
-                  title="Apoyar el proyecto con Yape"
-                >
-                  <span>💜</span>
-                  <span className="hidden sm:inline">Apoyar</span>
-                </button>
+                {ENABLE_YAPE_SUPPORT && (
+                  <button
+                    type="button"
+                    onClick={() => setShowSupportModal(true)}
+                    className="flex items-center gap-1 sm:gap-1.5 rounded-xl border border-purple-200 bg-purple-50 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-purple-900 hover:border-purple-300 hover:bg-purple-100 transition min-h-[36px]"
+                    title="Apoyar el proyecto con Yape"
+                  >
+                    <span>💜</span>
+                    <span className="hidden sm:inline">Apoyar</span>
+                  </button>
+                )}
               </div>
 
               {/* Solver option selector: compact dropdown */}
@@ -819,15 +830,15 @@ export default function Home() {
           school={data.school}
           cycle={selectedCycle}
           onClose={() => setShowExportModal(false)}
-          onOpenSupport={() => {
+          onOpenSupport={ENABLE_YAPE_SUPPORT ? () => {
             setShowExportModal(false);
             setShowSupportModal(true);
-          }}
+          } : undefined}
         />
       )}
 
       {/* Support Yape Modal */}
-      {showSupportModal && (
+      {ENABLE_YAPE_SUPPORT && showSupportModal && (
         <SupportModal onClose={() => setShowSupportModal(false)} />
       )}
 
