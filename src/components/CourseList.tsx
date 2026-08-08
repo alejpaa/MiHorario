@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Course, Section } from "../types";
 import { sectionsHaveConflict } from "../lib/conflict-checker";
+import { getCoursePalette } from "../lib/palette";
 
 interface ConflictingCourseItem {
   code: string;
@@ -26,6 +27,8 @@ interface CourseListProps {
   onConflictAttempt?: (notice: ConflictSelectionNotice) => void;
   hoveredCourseCode?: string | null;
   onHoverCourse?: (code: string | null) => void;
+  revealCourseCode?: string | null;
+  revealNonce?: number;
 }
 
 function formatSlots(section: Section): string {
@@ -41,8 +44,22 @@ export function CourseList({
   onConflictAttempt,
   hoveredCourseCode,
   onHoverCourse,
+  revealCourseCode,
+  revealNonce,
 }: CourseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [pendingConflict, setPendingConflict] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!revealCourseCode) {
+      return;
+    }
+    const element = listRef.current?.querySelector(
+      `[data-course-code="${CSS.escape(revealCourseCode)}"]`,
+    );
+    element?.scrollIntoView({ block: "nearest" });
+  }, [revealCourseCode, revealNonce]);
 
   const sectionCourseMap = new Map<string, Course>();
   for (const course of allCourses) {
@@ -100,28 +117,43 @@ export function CourseList({
       </div>
 
       {/* Course & Section List */}
-      <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-1 custom-scrollbar">
+      <div ref={listRef} className="min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-1 custom-scrollbar">
         {filteredCourses.map((course) => {
           const isSelectedCourse = Boolean(selectedSections[course.code]);
           const isHovered = hoveredCourseCode === course.code;
+          const isRevealed = revealCourseCode === course.code;
+          const palette = getCoursePalette(course.code);
 
           return (
             <article
               key={course.code}
+              data-course-code={course.code}
               onMouseEnter={() => onHoverCourse?.(course.code)}
               onMouseLeave={() => onHoverCourse?.(null)}
               className={`rounded-xl border p-2.5 transition-all duration-150 ${
-                isSelectedCourse
-                  ? "border-emerald-300 bg-emerald-50/40"
-                  : isHovered
-                    ? "border-slate-300 bg-slate-50"
-                    : "border-slate-200 bg-white"
+                isRevealed
+                  ? "border-emerald-500 bg-emerald-50 ring-4 ring-emerald-500/40 shadow-lg course-reveal-flash"
+                  : isSelectedCourse
+                    ? `${palette.border} ${palette.bg}`
+                    : isHovered
+                      ? "border-slate-300 bg-slate-50"
+                      : "border-slate-200 bg-white"
               }`}
             >
+              {isRevealed && (
+                <div className="mb-2 flex items-center justify-center rounded-lg bg-emerald-600 py-1 text-white shadow-sm">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </div>
+              )}
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-[10px] font-extrabold text-emerald-700">
+                    <span
+                      className={`inline-block h-2.5 w-2.5 shrink-0 rounded-sm ${palette.bg} ${palette.border}`}
+                    />
+                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-extrabold ${palette.badge}`}>
                       {course.code}
                     </span>
                     <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600">
@@ -174,12 +206,17 @@ export function CourseList({
                       type="button"
                       onClick={() => {
                         if (hasConflict && !selected) {
-                          onConflictAttempt?.({
-                            courseCode: course.code,
-                            courseName: course.name,
-                            sectionNumber: section.sectionNumber,
-                            conflicts: conflictingSections,
-                          });
+                          if (pendingConflict !== section.id) {
+                            setPendingConflict(section.id);
+                            onConflictAttempt?.({
+                              courseCode: course.code,
+                              courseName: course.name,
+                              sectionNumber: section.sectionNumber,
+                              conflicts: conflictingSections,
+                            });
+                            return;
+                          }
+                          setPendingConflict(null);
                         }
 
                         onSelectSection(course.code, section.id);

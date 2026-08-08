@@ -2,6 +2,7 @@
 
 import type { Course, DayName, Section } from "../types";
 import { timeToMinutes } from "../lib/time";
+import { getCoursePalette } from "../lib/palette";
 
 const DAYS: DayName[] = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO"];
 const SHORT_DAYS: Record<DayName, string> = {
@@ -15,27 +16,6 @@ const SHORT_DAYS: Record<DayName, string> = {
 
 const START_HOUR = 7;
 const END_HOUR = 22;
-
-const COURSE_PALETTES = [
-  { bg: "bg-emerald-100/90", border: "border-emerald-300", text: "text-emerald-950", badge: "bg-emerald-200 text-emerald-900" },
-  { bg: "bg-sky-100/90", border: "border-sky-300", text: "text-sky-950", badge: "bg-sky-200 text-sky-900" },
-  { bg: "bg-amber-100/90", border: "border-amber-300", text: "text-amber-950", badge: "bg-amber-200 text-amber-900" },
-  { bg: "bg-indigo-100/90", border: "border-indigo-300", text: "text-indigo-950", badge: "bg-indigo-200 text-indigo-900" },
-  { bg: "bg-violet-100/90", border: "border-violet-300", text: "text-violet-950", badge: "bg-violet-200 text-violet-900" },
-  { bg: "bg-rose-100/90", border: "border-rose-300", text: "text-rose-950", badge: "bg-rose-200 text-rose-900" },
-  { bg: "bg-teal-100/90", border: "border-teal-300", text: "text-teal-950", badge: "bg-teal-200 text-teal-900" },
-  { bg: "bg-blue-100/90", border: "border-blue-300", text: "text-blue-950", badge: "bg-blue-200 text-blue-900" },
-  { bg: "bg-fuchsia-100/90", border: "border-fuchsia-300", text: "text-fuchsia-950", badge: "bg-fuchsia-200 text-fuchsia-900" },
-];
-
-function getCoursePalette(input: string) {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = input.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % COURSE_PALETTES.length;
-  return COURSE_PALETTES[index];
-}
 
 function shortenCourseName(name: string): string {
   const normalized = name.replace(/\s+/g, " ").trim();
@@ -65,6 +45,7 @@ interface ScheduleGridProps {
   courses: Course[];
   hoveredCourseCode?: string | null;
   onHoverCourse?: (code: string | null) => void;
+  onClickCourse?: (code: string) => void;
 }
 
 export function ScheduleGrid({
@@ -72,6 +53,7 @@ export function ScheduleGrid({
   courses,
   hoveredCourseCode,
   onHoverCourse,
+  onClickCourse,
 }: ScheduleGridProps) {
   const totalHours = END_HOUR - START_HOUR;
   const totalMinutes = totalHours * 60;
@@ -85,10 +67,10 @@ export function ScheduleGrid({
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-      <div className="min-h-0 flex-1 overflow-x-auto">
-        <div className="flex h-full min-h-[420px] min-w-[700px] flex-col xl:min-w-0">
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="flex h-full w-full flex-col">
           {/* Day Headers */}
-          <div className="grid grid-cols-[52px_repeat(6,minmax(90px,1fr))] gap-1.5 text-xs font-bold text-slate-700 md:grid-cols-[60px_repeat(6,1fr)]">
+          <div className="grid grid-cols-[48px_repeat(6,minmax(0,1fr))] gap-1.5 text-xs font-bold text-slate-700">
             <div className="flex items-center justify-center text-[10px] uppercase text-slate-400 font-mono">
               Hora
             </div>
@@ -104,15 +86,19 @@ export function ScheduleGrid({
           </div>
 
           {/* Time & Slot Grid Area */}
-          <div className="relative mt-1.5 grid min-h-0 flex-1 grid-cols-[52px_repeat(6,minmax(90px,1fr))] gap-1.5 md:grid-cols-[60px_repeat(6,1fr)]">
+          <div className="relative mt-1.5 grid min-h-0 flex-1 grid-rows-1 grid-cols-[48px_repeat(6,minmax(0,1fr))] gap-1.5">
             {/* Time labels column */}
             <div className="relative h-full text-[10px] font-mono text-slate-400">
               {Array.from({ length: totalHours + 1 }, (_, index) => {
                 const hour = START_HOUR + index;
+                const isFirst = index === 0;
+                const isLast = index === totalHours;
                 return (
                   <span
                     key={hour}
-                    className="absolute left-1 -translate-y-1/2 select-none"
+                    className={`absolute left-1 select-none ${
+                      isLast ? "-translate-y-full" : isFirst ? "translate-y-0" : "-translate-y-1/2"
+                    }`}
                     style={{ top: `${(index / totalHours) * 100}%` }}
                   >
                     {`${String(hour).padStart(2, "0")}:00`}
@@ -154,13 +140,22 @@ export function ScheduleGrid({
 
                       const showTeacher = duration >= 100;
                       const showSection = duration >= 75;
+                      const courseLabel =
+                        course?.name ?? course?.code ?? "Curso sin nombre";
+                      const blockLabel = `${shortenCourseName(courseLabel)}, Sección ${section.sectionNumber}, ${day}, ${slot.start} - ${slot.end}${course ? `, ${course.code}` : ""}`;
 
                       return (
                         <article
                           key={`${section.id}-${day}-${slot.start}`}
                           onMouseEnter={() => course && onHoverCourse?.(course.code)}
                           onMouseLeave={() => onHoverCourse?.(null)}
-                          className={`absolute left-0.5 right-0.5 overflow-hidden rounded-lg border px-2 py-1 text-[10px] transition-all duration-150 shadow-2xs ${
+                          onFocus={() => course && onHoverCourse?.(course.code)}
+                          onBlur={() => onHoverCourse?.(null)}
+                          onClick={() => course && onClickCourse?.(course.code)}
+                          tabIndex={0}
+                          role="img"
+                          aria-label={blockLabel}
+                          className={`absolute left-0.5 right-0.5 overflow-hidden rounded-lg border px-2 py-1 text-[10px] transition-all duration-150 shadow-2xs outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 ${
                             palette.bg
                           } ${palette.border} ${
                             isHovered

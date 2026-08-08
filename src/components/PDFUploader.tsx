@@ -16,6 +16,7 @@ export function PDFUploader({
   onLoadSample,
 }: PDFUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [invalidFile, setInvalidFile] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const processFile = (file: File | null | undefined) => {
@@ -23,8 +24,10 @@ export function PDFUploader({
       return;
     }
     if (file.type !== "application/pdf") {
+      setInvalidFile(`"${file.name}" no es un PDF válido. Solo se aceptan archivos PDF.`);
       return;
     }
+    setInvalidFile(null);
     onFileSelected(file);
   };
 
@@ -91,12 +94,14 @@ export function PDFUploader({
           }}
           disabled={loading}
           aria-label="Seleccionar o arrastrar archivo PDF de horarios UNMSM"
+          aria-describedby={invalidFile ? "pdf-upload-error" : undefined}
           className={`mt-6 flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${
-            isDragging
-              ? "border-emerald-500 bg-emerald-50 text-emerald-950 scale-[1.01]"
-              : "border-slate-300 bg-slate-50/80 text-slate-700 hover:border-emerald-400 hover:bg-emerald-50/30"
+            invalidFile
+              ? "border-rose-300 bg-rose-50"
+              : isDragging
+                ? "border-emerald-500 bg-emerald-50 text-emerald-950 scale-[1.01]"
+                : "border-slate-300 bg-slate-50/80 text-slate-700 hover:border-emerald-400 hover:bg-emerald-50/30"
           }`}
-
 
         >
           {loading ? (
@@ -118,6 +123,16 @@ export function PDFUploader({
             </>
           )}
         </button>
+
+        {invalidFile && (
+          <p
+            id="pdf-upload-error"
+            role="alert"
+            className="mt-2 text-[11px] font-semibold text-rose-700"
+          >
+            {invalidFile}
+          </p>
+        )}
 
         {onLoadSample && (
           <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">

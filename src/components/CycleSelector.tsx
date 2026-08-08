@@ -1,6 +1,7 @@
 "use client";
 
 import type { Course } from "../types";
+import { DropdownMenu } from "./DropdownMenu";
 
 interface CycleSelectorProps {
   cycles: number[];
@@ -40,27 +41,45 @@ export function CycleSelector({
         </div>
       </div>
 
-      {/* Cycle Selector Pills */}
-      <div className="flex flex-wrap gap-1">
-        {cycles.map((cycle) => {
-          const isSelected = selectedCycle === cycle;
-          return (
-            <button
-              key={cycle}
-              type="button"
-              onClick={() => onCycleChange(cycle)}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-                isSelected
-                  ? "bg-emerald-600 text-white shadow-2xs"
-                  : "bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-200/80"
-              }`}
-            >
-
-              Ciclo {cycle}
-            </button>
-          );
-        })}
-      </div>
+      {/* Cycle Selector */}
+      <DropdownMenu
+        label="Seleccionar ciclo"
+        trigger={
+          <span className="flex items-center gap-1.5">
+            Ciclo {selectedCycle}
+            <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
+        }
+        triggerClassName="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-200/80 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+      >
+        {(close) => (
+          <div className="max-h-56 overflow-y-auto custom-scrollbar">
+            {cycles.map((cycle) => {
+              const isSelected = selectedCycle === cycle;
+              return (
+                <button
+                  key={cycle}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    onCycleChange(cycle);
+                    close();
+                  }}
+                  className={`block w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                    isSelected
+                      ? "bg-emerald-50 text-emerald-800"
+                      : "text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  Ciclo {cycle}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </DropdownMenu>
 
       {/* Extra courses toggle */}
       <div className="mt-3 pt-2.5 border-t border-slate-100">
