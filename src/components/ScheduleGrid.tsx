@@ -17,26 +17,19 @@ const SHORT_DAYS: Record<DayName, string> = {
 const START_HOUR = 7;
 const END_HOUR = 22;
 
-function shortenCourseName(name: string): string {
-  const normalized = name.replace(/\s+/g, " ").trim();
-  if (normalized.length <= 22) {
-    return normalized;
-  }
-  const words = normalized.split(" ");
-  if (words.length > 3) {
-    return `${words.slice(0, 3).join(" ")}...`;
-  }
-  return `${normalized.slice(0, 20)}...`;
-}
-
-function getTeacherFirstSurname(rawTeacher: string): string {
+function getTeacherDisplayName(rawTeacher: string): string {
   const clean = rawTeacher.replace(/^\s*[0-9A-Z]+\s*-\s*/i, "").trim();
   if (!clean || clean.toLowerCase() === "no asignado") {
     return "Sin docente";
   }
 
-  const [lastNames] = clean.split(",");
-  const firstSurname = lastNames.trim().split(/\s+/)[0];
+  const [lastNames, givenNames] = clean.split(",").map((part) => part.trim());
+  const firstSurname = lastNames?.split(/\s+/)[0] ?? "";
+  const firstName = givenNames?.split(/\s+/)[0] ?? "";
+
+  if (firstName) {
+    return `${firstSurname}, ${firstName}`;
+  }
   return firstSurname || "Sin docente";
 }
 
@@ -140,11 +133,11 @@ export function ScheduleGrid({
                       const top = (startOffset / totalMinutes) * 100;
                       const height = (duration / totalMinutes) * 100;
 
-                      const showTeacher = duration >= 100;
+                      const showTeacher = duration >= 60;
                       const showSection = duration >= 75;
                       const courseLabel =
                         course?.name ?? course?.code ?? "Curso sin nombre";
-                      const blockLabel = `${shortenCourseName(courseLabel)}, Sección ${section.sectionNumber}, ${day}, ${slot.start} - ${slot.end}${course ? `, ${course.code}` : ""}`;
+                      const blockLabel = `${courseLabel}, Sección ${section.sectionNumber}, ${day}, ${slot.start} - ${slot.end}${course ? `, ${course.code}` : ""}, Docente: ${getTeacherDisplayName(section.teacher)}`;
 
                       const blockHandlers = interactive
                         ? {
@@ -176,9 +169,9 @@ export function ScheduleGrid({
                           }`}
                           style={{ top: `${top}%`, height: `${height}%` }}
                         >
-                          <div className="flex items-center justify-between gap-1">
-                            <p className={`truncate font-extrabold tracking-tight ${palette.text}`}>
-                              {shortenCourseName(course?.name ?? course?.code ?? "Curso")}
+                          <div className="flex items-start justify-between gap-1">
+                            <p className={`flex-1 min-w-0 font-extrabold leading-snug tracking-tight break-words ${palette.text}`}>
+                              {course?.name ?? course?.code ?? "Curso"}
                             </p>
                             {showSection && (
                               <span className={`shrink-0 rounded px-1 text-[9px] font-mono font-bold ${palette.badge}`}>
@@ -187,11 +180,11 @@ export function ScheduleGrid({
                             )}
                           </div>
                           {showTeacher && (
-                            <p className="truncate text-[9px] text-slate-700 mt-0.5">
-                              {getTeacherFirstSurname(section.teacher)}
+                            <p className="mt-0.5 font-semibold text-slate-700 leading-tight break-words">
+                              {getTeacherDisplayName(section.teacher)}
                             </p>
                           )}
-                          <p className="truncate font-mono text-[9px] text-slate-600 mt-0.5">
+                          <p className="mt-0.5 font-mono text-slate-600 leading-tight">
                             {slot.start} - {slot.end}
                           </p>
                         </article>
